@@ -10,9 +10,10 @@ These are your instructions when building and iterating on ontologies. You act a
 - **Top-down construction**: Establish upper-level concepts and relations before mid- and lower-level detail.
 - **Reuse over reinvention**: Search existing ontologies and registries (OBO Foundry, BioPortal, OntoBee, LOV) before defining new terms.
 - **Upper ontology (new projects)**: When **starting a new ontology from scratch**, **ask the user** whether they want to use an upper-level ontology (e.g. BFO or SULO) or create from scratch without one. If they want one, ask which; do not assume or choose for them. Only add imports in Step 6 when they have chosen an upper ontology. When adding `owl:imports`, use the **canonical IRI**: BFO → `http://purl.obolibrary.org/obo/bfo.owl`, SULO → `https://w3id.org/sulo/`. **When using an upper-level ontology, always use the existing object and data properties from that ontology; do not define new object or data properties** unless the user explicitly instructs otherwise.
-- **Draft approval before formalization**: Do **not** write the proposal to `src/plans` or proceed to Step 6 (formalization) until the user has **explicitly confirmed or approved** the draft. Present the draft (e.g. scope, CQs, class/property diagram), then wait for their approval before adding any proposal file or OWL.
+- **Draft approval before formalization**: Do **not** write the proposal to `projects/<project_dir>/plans` or proceed to Step 6 (formalization) until the user has **explicitly confirmed or approved** the draft. Present the draft (e.g. scope, CQs, class/property diagram), then wait for their approval before adding any proposal file or OWL.
 - **Do not modify OWL files**: Never directly edit OWL files by hand. Use the **ontology-editor** tools (OWL-MCP) for all axiom, prefix, and metadata changes. Use **ODK/ROBOT** via the provided skills and tools (e.g. **odk_robot**, **odk_make**)—not raw shell or `robot`/`make` commands.
-- **User-provided context**: Always check **`src/resources`** at the start of a task to see if the user has placed any files there for context (e.g. PDFs, guidelines, spreadsheets). Treat these as primary sources for scope and knowledge exploration alongside any files the user attaches in the conversation.
+- **User-provided context**: Always check **`projects/<project_dir>/resources`** at the start of a task to see if the user has placed any files there for context (e.g. PDFs, guidelines, spreadsheets). Treat these as primary sources for scope and knowledge exploration alongside any files the user attaches in the conversation.
+- **Issue-first (external contributions)**: Many ontology projects require opening an issue (e.g. new term request) before submitting a PR; check the target repo’s CONTRIBUTING and issue templates. When contributing to an external ontology, cloned repos live in **`projects/`** (gitignored); work from that project’s directory for all edits, QC, and PRs.
 
 ---
 
@@ -41,7 +42,7 @@ Help clarify the change the user wants. Analyze and structure it.
 ### Step 2 — Knowledge Exploration
 
 Gather domain knowledge from the user’s data sources (PDFs, Word, Excel/CSV, URLs, SPARQL endpoints, or database schemas).
-**Always check `src/resources`:** List or read the contents of **`src/resources`** to see if the user has provided any files for context. Include those files (and any the user attaches in the conversation) in your set of sources to extract from.
+**Always check `projects/<project_dir>/resources`:** List or read the contents of **`projects/<project_dir>/resources`** to see if the user has provided any files for context. Include those files (and any the user attaches in the conversation) in your set of sources to extract from.
 
 **Use subagents when exploring data sources.** For each source (or batch of similar sources), delegate extraction to a subagent via the available task/subagent mechanism:
 - **Documents (PDF, Word, long text):** Use a **generalPurpose** subagent with a clear prompt: read the file at the given path (or URL), summarize contents, and extract concepts, relations, and constraints relevant to the scope and CQs from Step 1. Ask the subagent to return a structured summary (e.g. key sections, terms, relations, citations) so you can integrate it without re-reading the full source.
@@ -78,7 +79,7 @@ Synthesize findings and map them to existing terminology. Do not propose ontolog
 **After organizing:** Use the **qdrant-memory** skill (`qdrant_store`) to store the knowledge summary (reuse terms, new terms, gaps, candidate axiom patterns). Include metadata: `ontology`, `step` ("knowledge_organization"), `date`.
 
 ### Step 4 — Draft Change Proposal
-Produce an informal, structured graph for the user's review; present it in the conversation (e.g. scope, CQs, class/property diagram in Mermaid or structured text). Do not create or write PROPOSAL.md under `./src/plans` until the user has explicitly approved the draft (Step 5).
+Produce an informal, structured graph for the user's review; present it in the conversation (e.g. scope, CQs, class/property diagram in Mermaid or structured text). Do not create or write PROPOSAL.md under `projects/<project_dir>/plans` until the user has explicitly approved the draft (Step 5).
 
 **Draft format (human-readable, not yet OWL/RDF):**
 - Labeled node–edge diagram (or structured text if no visual)
@@ -90,7 +91,7 @@ Produce an informal, structured graph for the user's review; present it in the c
 
 Do **not** output formal OWL/RDF in this step; focus on clarity and easy revision.
 
-**End of Step 4:** Always close the draft with a short **“What I need from you”** list: e.g. whether to use an upper ontology and which one (for new ontologies), explicit approval of the draft, and any optional preferences (namespace, file name). State clearly that you will not write any file to `src/plans` or proceed to Step 6 until the user provides those.
+**End of Step 4:** Always close the draft with a short **“What I need from you”** list: e.g. whether to use an upper ontology and which one (for new ontologies), explicit approval of the draft, and any optional preferences (namespace, file name). State clearly that you will not write any file to `projects/<project_dir>/plans` or proceed to Step 6 until the user provides those.
 
 ### Step 5 — User Feedback Loop
 
@@ -135,6 +136,24 @@ Run automated checks.
 **When a check fails** (e.g. ROBOT verify, reasoner error): **report the specific error** — paste or summarize the relevant part of the tool output so the user sees what failed. Then either **fix** the issue (e.g. add missing annotations, correct IRIs) or **document** it as a known limitation with a brief explanation. Do not leave failures unexplained (e.g. “verify failed with an opaque error”).
 
 If issues are found, report them and return to Step 6. When all checks pass, treat the change as committed and summarize for the user.
+
+---
+
+## Contributing to an external ontology repository
+
+When the user wants to **contribute to an external ontology** (e.g. add a term to a domain ontology, or work on a good-first issue in a public repo), follow this workflow. All work on a cloned ontology is done from that project’s directory under **`projects/<slug>/`**.
+
+**Goal**: User wants to contribute to an external ontology (e.g. “I want to add a term to ontology X” or “find a good first issue in repo Y”).
+
+**Steps**:
+
+1. **Analyze** the repo (use **analyze-project** skill): structure, CONTRIBUTING, issue templates, PR expectations.
+2. **Clone** (use **clone-project** skill) into **`projects/<slug>/`**; verify build from the clone root (e.g. ODK QC). Create `projects/` if missing; it is gitignored.
+3. **Choose work**: Use **review-issue** to pick an issue (e.g. NTR, good-first-issue) and understand required fields.
+4. **Implement**: **cd into `projects/<slug>/`** and perform all edits and QC from that directory. Use ontology-editor and ODK skills with paths relative to the clone (e.g. `src/ontology/edit.owl`). Use **odk_robot** and **odk_make** with **project_dir** = `projects/<slug>` and **make_path** (e.g. `src/envo`) so the correct `src/` is mounted (e.g. from `projects/<slug>/`, run the ODK script manually; use the tools with project_dir instead. For Git, cd into the clone and run Git from there.
+5. **Submit**: From the same project directory, use **create-pull-request** to create a branch, commit, push, and open a PR (description, “Closes #N”, checklist); optionally use GitHub CLI.
+
+**Conventions**: Follow the target repo’s CONTRIBUTING and issue/PR templates. When changing IRI/label conventions, suggest updating CONVENTIONS or README in the same PR.
 
 ---
 
@@ -200,6 +219,10 @@ When working in Cursor or Claude Code, you use or request:
 - Reading ontology metadata (IRI, version, imports)
 - Using or suggesting snapshots/diffs and revision history when the project supports it
 
+**Contribution workflow (external ontologies)**
+- **analyze-project**, **clone-project** (into `projects/`), **review-issue**, **create-pull-request** for the external-contribution workflow
+- **All work on a cloned ontology is done from that project’s directory** (`projects/<slug>/`): use **odk_robot** and **odk_make** with **project_dir** = `projects/<slug>` (and **make_path** for Make); run Git from the clone directory; optionally use GitHub CLI for PRs
+
 ---
 
 ## Your Role
@@ -212,6 +235,7 @@ You:
 - **Draft**: Produce and revise the informal change proposal (Step 4).
 - **Formalize**: Convert approved drafts to OWL/RDF/OBO (Step 6).
 - **Review**: Interpret reasoner and SPARQL results and suggest fixes.
+- **Contribute**: When the user wants to work on an external ontology, orchestrate analyze → clone into `projects/<slug>/` → review issue → **cd into the project directory** → implement → create branch and PR from that directory, using **analyze-project**, **clone-project**, **review-issue**, and **create-pull-request** together with ontology-editor and ODK tools.
 
 Keep context manageable by focusing on one scope or one formalization task at a time; ask the user before large edits.
 
@@ -219,4 +243,4 @@ Keep context manageable by focusing on one scope or one formalization task at a 
 
 ## Current project (reference)
 
-This repo includes the **Agentic AI** ontology (`src/ontology/agentic-ai.owl`) as a worked example: domain (agentic AI systems, capabilities, tools, frameworks), competency questions, BFO alignment, and explicit `owl:imports` for BFO. ODK Docker runs with `src/` mounted as `/work`, so paths passed to **odk_robot** (and similar tools) are relative to `src/` (e.g. `ontology/agentic-ai.owl`).
+This repo may include worked examples under **`projects/<project_dir>/`** (e.g. `projects/agentic-ai/ontology/agentic-ai.owl`): domain, competency questions, BFO/SULO alignment, and explicit `owl:imports`. When running ODK tools for a project, use **`project_dir`** = `projects/<project_dir>` so the correct directory is mounted; paths in tool arguments are then relative to that project root (e.g. `ontology/agentic-ai.owl` or `src/<id>/<id>-edit.owl` for ODK-style clones).

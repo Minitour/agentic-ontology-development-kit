@@ -6,7 +6,7 @@ Build or edit ontologies with AI assistance in Cursor or Claude Code. You instal
 
 1. **Install prerequisites** (below).
 2. **Run `capa install`** once in the project root after cloning.
-3. **Put existing OWL files in `src/`** (e.g. `src/ontology/my-ontology.owl`) if you are editing an existing ontology. For a new one, you can start from scratch or add an ODK config and ask the agent to seed the project.
+3. **Put existing OWL files under `projects/<project_dir>/`** (e.g. `projects/my-ontology/ontology/my-ontology.owl`) if you are editing an existing ontology. For a new one, you can start from scratch or add an ODK config and ask the agent to seed the project.
 4. **Chat with the agent**—describe your goal, answer when it asks which upper ontology to use (BFO or SULO), and approve proposals. It will edit the ontology, add imports, and run checks for you.
 
 ## Prerequisites
@@ -26,13 +26,13 @@ Install these before starting:
 
 1. Clone the this repository and open it with your agent of choice
 2. Run `capa install` and ensure your agent has access to the capa MCP server.
-3. Add any relevant files you have to ./src/resources
+3. Add any relevant files you have to `projects/<project_dir>/resources`.
 
 ## Where to put your ontology files
 
-- **Existing ontology**: Put your OWL file(s) in `**src/`**, for example `src/ontology/my-ontology.owl`. The agent will work with whatever you put there.
-- **New ontology (OBO/BFO style)**: You can add an ODK config YAML and ask the agent to seed the project, or create an empty OWL file in `src/ontology/` and describe what you want. The agent will ask whether to use BFO and will add imports and alignment.
-- **New or existing ontology (SULO)**: Same as above—put OWL in `src/` (e.g. `src/ontology/`). When the agent asks which upper ontology to use, choose SULO; it will add SULO imports and alignment.
+- **Existing ontology**: Put your OWL file(s) under **`projects/<project_dir>/`**, for example `projects/my-ontology/ontology/my-ontology.owl`. The agent will work with whatever you put there.
+- **New ontology (OBO/BFO style)**: You can add an ODK config YAML and ask the agent to seed the project, or create an empty OWL file in `projects/<project_dir>/ontology/` and describe what you want. The agent will ask whether to use BFO and will add imports and alignment.
+- **New or existing ontology (SULO)**: Same as above—put OWL under `projects/<project_dir>/` (e.g. `projects/<project_dir>/ontology/`). When the agent asks which upper ontology to use, choose SULO; it will add SULO imports and alignment.
 
 Upper ontologies (BFO and SULO) live in `upper-level/` for reference. You do not add them to your ontology yourself; the agent does that when you choose one.
 
@@ -42,11 +42,12 @@ Upper ontologies (BFO and SULO) live in `upper-level/` for reference. You do not
 ontology-builder/
 ├── capabilities.yaml   # Agent skills and tools (managed by capa)
 ├── INIT.md             # Agent instructions (for the agent, not you)
-├── src/                # Put your ontology files here
-│   └── ontology/       # e.g. src/ontology/my-ontology.owl
-|   └── plans/          # Draft proposals made by the agent
-|   └── resources/      # Resources to give to the agent (such as PDFs, CSVs etc.)  
-├── upper-level/              # BFO and SULO (reference only)
+├── projects/           # One directory per ontology project
+│   └── <project_dir>/  # e.g. my-ontology, envo
+│       ├── ontology/   # e.g. projects/<project_dir>/ontology/my-ontology.owl
+│       ├── plans/      # Draft proposals made by the agent
+│       └── resources/  # Resources to give to the agent (PDFs, CSVs, etc.)
+├── upper-level/        # BFO and SULO (reference only)
 └── skills/             # Agent skills
 ```
 
@@ -57,5 +58,4 @@ The agent can store and recall knowledge (e.g. competency questions, scope) in a
 ## References
 
 - [INIT.md](INIT.md) — Agent workflow (for the agent).
-- [src/README.md](src/README.md) — Notes on the `src/` layout.
 

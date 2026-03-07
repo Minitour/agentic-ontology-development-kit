@@ -7,7 +7,10 @@ description: Run ROBOT for ontology QC, merge, reason, convert, template, or que
 
 Use this skill when the user needs to **run ROBOT** for: **verify** (rule-based QC), **validate** OWL 2 profile, **merge** ontologies, **reason** (classification/inference), **convert** format (OWL ↔ OBO etc.), **template** (generate terms from CSV + template), or **query** (SPARQL or DL). **Use the odk_robot tool** (activate the skill with setup_tools, then call_tool)—do not run `robot` via shell or **odk_run**. This is the only way to run ROBOT in this project.
 
-**Paths**: In this Ontology Builder repo, the ODK Docker wrapper mounts only `src/` as `/work`. So paths in `robot_args` are **relative to `src/`** (e.g. `ontology/agentic-ai.owl`, `ontology/agentic-ai-reasoned.owl`), not the project root.
+**Paths**: The ODK Docker wrapper mounts a project directory at `/work`. Paths in `robot_args` are **relative to that mounted root**.
+
+- **Workspace ontology** (no `project_dir`): Omit or leave `project_dir` empty. The current working directory is mounted; paths are relative to it (e.g. `src/ontology/edit.owl` or `ontology/edit.owl` depending on layout).
+- **Cloned project** under `projects/<slug>/`: Pass **`project_dir`** = the clone root (e.g. `projects/owner-repo`). Paths in `robot_args` are then relative to the clone root (e.g. `src/envo/envo-edit.owl`, `src/ontology/edit.owl`). **Always use the built-in odk_robot tool with project_dir** for clones—do not run `node scripts/odk-docker-run.js` manually from the shell.
 
 ## When to Use This Skill (by outcome)
 
@@ -152,17 +155,18 @@ robot extract --input edit.owl --term-file terms.txt --output subset.owl
 
 | Argument       | Type   | Required | Description |
 |----------------|--------|----------|-------------|
-| **robot_args** | string | yes      | The full ROBOT subcommand and options. In this repo paths are relative to **src/** (e.g. `ontology/agentic-ai.owl`). E.g. `reason --input ontology/agentic-ai.owl --reasoner elk --output ontology/agentic-ai-reasoned.owl`, `verify --input ontology/agentic-ai.owl`, `merge --inputs ontology/a.owl ontology/b.owl --output ontology/merged.owl`. |
+| **robot_args** | string | yes      | The full ROBOT subcommand and options. Paths relative to the mounted project root (e.g. `src/ontology/edit.owl`, or for a clone `src/envo/envo-edit.owl`). |
+| **project_dir** | string | no       | Optional. When working on a **cloned** ontology under `projects/<slug>/`, set to the clone root (e.g. `projects/owner-repo`) so the correct project is mounted. Omit or leave empty for the workspace ontology. |
 
 ## Examples (calling the tool)
 
-- Verify: **odk_robot** with `robot_args`: `verify --input edit.owl --output report.txt`
-- Validate profile: **odk_robot** with `robot_args`: `validate-profile --input edit.owl --profile DL`
-- Merge: **odk_robot** with `robot_args`: `merge --inputs upper-level/bfo.owl edit.owl --output merged.owl`
-- Reason: **odk_robot** with `robot_args`: `reason --input edit.owl --reasoner elk --output reasoned.owl`
-- Convert: **odk_robot** with `robot_args`: `convert --input edit.owl --output edit.obo --format obo`
+- Verify (workspace): **odk_robot** with `robot_args`: `verify --input src/ontology/edit.owl --output report.txt`
+- Validate profile (clone): **odk_robot** with `robot_args`: `validate-profile --input src/envo/envo-edit.owl --profile DL`, `project_dir`: `projects/owner-repo`
+- Reason: **odk_robot** with `robot_args`: `reason --input src/ontology/edit.owl --reasoner elk --output reasoned.owl`
+- Merge: **odk_robot** with `robot_args`: `merge --inputs src/ontology/a.owl src/ontology/b.owl --output merged.owl`
+- Convert: **odk_robot** with `robot_args`: `convert --input src/ontology/edit.owl --output edit.obo --format obo`
 - Template: **odk_robot** with `robot_args`: `template --template templates/terms.yaml --input terms.csv --output terms.owl`
-- Query: **odk_robot** with `robot_args`: `query --input edit.owl --query query.rq results.csv`
+- Query: **odk_robot** with `robot_args`: `query --input src/ontology/edit.owl --query query.rq results.csv`
 - Version: **odk_robot** with `robot_args`: `--version`
 
 ## Tool Requirement
