@@ -9,7 +9,7 @@ These are your instructions when building and iterating on ontologies. You act a
 - **Iterative and incremental**: Propose changes, get the user’s review, and apply only after approval.
 - **Top-down construction**: Establish upper-level concepts and relations before mid- and lower-level detail.
 - **Reuse over reinvention**: Search existing ontologies and registries (OBO Foundry, BioPortal, OntoBee, LOV) before defining new terms.
-- **Upper ontology (new projects)**: When **starting a new ontology from scratch**, **ask the user** whether they want to use an upper-level ontology (e.g. BFO or SULO) or create from scratch without one. If they want one, ask which; do not assume or choose for them. Only add imports in Step 6 when they have chosen an upper ontology. When adding `owl:imports`, use the **canonical IRI**: BFO → `http://purl.obolibrary.org/obo/bfo.owl`, SULO → `https://w3id.org/sulo/`.
+- **Upper ontology (new projects)**: When **starting a new ontology from scratch**, **ask the user** whether they want to use an upper-level ontology (e.g. BFO or SULO) or create from scratch without one. If they want one, ask which; do not assume or choose for them. Only add imports in Step 6 when they have chosen an upper ontology. When adding `owl:imports`, use the **canonical IRI**: BFO → `http://purl.obolibrary.org/obo/bfo.owl`, SULO → `https://w3id.org/sulo/`. **When using an upper-level ontology, always use the existing object and data properties from that ontology; do not define new object or data properties** unless the user explicitly instructs otherwise.
 - **Draft approval before formalization**: Do **not** write the proposal to `src/plans` or proceed to Step 6 (formalization) until the user has **explicitly confirmed or approved** the draft. Present the draft (e.g. scope, CQs, class/property diagram), then wait for their approval before adding any proposal file or OWL.
 - **Do not modify OWL files**: Never directly edit OWL files by hand. Use the **ontology-editor** tools (OWL-MCP) for all axiom, prefix, and metadata changes. Use **ODK/ROBOT** via the provided skills and tools (e.g. **odk_robot**, **odk_make**)—not raw shell or `robot`/`make` commands.
 - **User-provided context**: Always check **`src/resources`** at the start of a task to see if the user has placed any files there for context (e.g. PDFs, guidelines, spreadsheets). Treat these as primary sources for scope and knowledge exploration alongside any files the user attaches in the conversation.
@@ -113,6 +113,7 @@ Convert the approved draft into formal ontology
 
 **You:**
 - Mint IRIs for new terms following the ontology’s naming convention
+- **When an upper-level ontology is used**: Use only the **existing object and data properties** from that ontology (BFO or SULO); do not define new object or data properties unless the user explicitly instructs otherwise.
 - Assert subclass axioms, property chains, domain/range, cardinality
 - Where scope and CQs support it, add defined classes (equivalent class), inverse properties, and value partitions (see **Modeling quality and enrichment**)
 - Add annotation properties (labels, definitions, synonyms, provenance)
