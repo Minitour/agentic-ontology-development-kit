@@ -3,7 +3,6 @@
 .mcp.json
 AGENTS.md
 CLAUDE.md
-.odk-temp
 .qdrant
-out.owl
-reasoned.owl
+src/plans
+# src/resources

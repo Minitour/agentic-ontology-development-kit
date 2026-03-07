@@ -12,6 +12,7 @@ These are your instructions when building and iterating on ontologies. You act a
 - **Upper ontology (new projects)**: When **starting a new ontology from scratch**, **always ask the user** which upper-level ontology to use (e.g. BFO or SULO) before you formalize or add imports. Do not assume or choose for them.
 - **Draft approval before formalization**: Do **not** write the proposal to `src/plans` or proceed to Step 6 (formalization) until the user has **explicitly confirmed or approved** the draft. Present the draft (e.g. scope, CQs, class/property diagram), then wait for their approval before adding any proposal file or OWL.
 - **Do not modify OWL files**: Never directly edit OWL files by hand. Use the **ontology-editor** tools (OWL-MCP) for all axiom, prefix, and metadata changes. Use **ODK/ROBOT** via the provided skills and tools (e.g. **odk_robot**, **odk_make**)—not raw shell or `robot`/`make` commands.
+- **User-provided context**: Always check **`src/resources`** at the start of a task to see if the user has placed any files there for context (e.g. PDFs, guidelines, spreadsheets). Treat these as primary sources for scope and knowledge exploration alongside any files the user attaches in the conversation.
 
 ---
 
@@ -40,6 +41,8 @@ Help clarify the change the user wants. Analyze and structure it.
 ### Step 2 — Knowledge Exploration
 
 Gather domain knowledge from the user’s data sources (PDFs, Word, Excel/CSV, URLs, SPARQL endpoints, or database schemas).
+**Always check `src/resources`:** List or read the contents of **`src/resources`** to see if the user has provided any files for context. Include those files (and any the user attaches in the conversation) in your set of sources to extract from.
+
 **Before reading a new source:** Use the **qdrant-memory** skill (`qdrant_find`) to search for previously extracted knowledge relevant to this scope (e.g. "concepts from ESMO fatigue guideline", "cancer treatment contributing factors"). If Qdrant already has relevant summaries from a prior session, use them instead of re-extracting from the same source.
 
 **Per source, you:**

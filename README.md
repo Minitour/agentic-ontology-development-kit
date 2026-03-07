@@ -17,10 +17,16 @@ Install these before starting:
 | Requirement             | Purpose                                                                                                                                          |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Docker**              | Used by the agent to run ROBOT, owltools, and other ontology tools. [Install Docker](https://docs.docker.com/get-docker/).                       |
-| **Node.js** (v16+)      | Used to run project scripts. [Install Node.js](https://nodejs.org/).                                                                             |
+| **Node.js** (v18+)      | Used to run project scripts. [Install Node.js](https://nodejs.org/).                                                                             |
 | **Python 3** and **uv** | Used to run the ontology-editor and optional memory service. Install [uv](https://docs.astral.sh/uv/) so that `uvx` is on your PATH.             |
 | **capa**                | Syncs the agent’s skills and tools from this project. [CAPA](https://capa.infragate.ai/). After cloning, run `capa install` in the project root. |
 
+
+## Setup
+
+1. Clone the this repository and open it with your agent of choice
+2. Run `capa install` and ensure your agent has access to the capa MCP server.
+3. Add any relevant files you have to ./src/resources
 
 ## Where to put your ontology files
 
@@ -38,6 +44,8 @@ ontology-builder/
 ├── INIT.md             # Agent instructions (for the agent, not you)
 ├── src/                # Put your ontology files here
 │   └── ontology/       # e.g. src/ontology/my-ontology.owl
+|   └── plans/          # Draft proposals made by the agent
+|   └── resources/      # Resources to give to the agent (such as PDFs, CSVs etc.)  
 ├── .base/              # BFO and SULO (reference only)
 └── skills/             # Agent skills
 ```
