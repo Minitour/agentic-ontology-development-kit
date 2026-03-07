@@ -1,4 +1,4 @@
-# Ontology Builder
+# Agentic Ontology Development Kit
 
 Build or edit ontologies with AI assistance in Cursor or Claude Code. You install the required tools, put your ontology files in the right place, and tell the agent what you want. The agent handles scope, proposals, formalization, upper-ontology alignment (BFO or SULO), and checks.
 
@@ -13,16 +13,18 @@ Build or edit ontologies with AI assistance in Cursor or Claude Code. You instal
 
 Install these before starting:
 
-| Requirement | Purpose |
-|-------------|---------|
-| **Docker** | Used by the agent to run ROBOT, owltools, and other ontology tools. [Install Docker](https://docs.docker.com/get-docker/). |
-| **Node.js** (v16+) | Used to run project scripts. [Install Node.js](https://nodejs.org/). |
-| **Python 3** and **uv** | Used to run the ontology-editor and optional memory service. Install [uv](https://docs.astral.sh/uv/) so that `uvx` is on your PATH. |
-| **capa** | Syncs the agent’s skills and tools from this project. [CAPA](https://capa.infragate.ai/). After cloning, run `capa install` in the project root. |
+
+| Requirement             | Purpose                                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Docker**              | Used by the agent to run ROBOT, owltools, and other ontology tools. [Install Docker](https://docs.docker.com/get-docker/).                       |
+| **Node.js** (v16+)      | Used to run project scripts. [Install Node.js](https://nodejs.org/).                                                                             |
+| **Python 3** and **uv** | Used to run the ontology-editor and optional memory service. Install [uv](https://docs.astral.sh/uv/) so that `uvx` is on your PATH.             |
+| **capa**                | Syncs the agent’s skills and tools from this project. [CAPA](https://capa.infragate.ai/). After cloning, run `capa install` in the project root. |
+
 
 ## Where to put your ontology files
 
-- **Existing ontology**: Put your OWL file(s) in **`src/`**, for example `src/ontology/my-ontology.owl`. The agent will work with whatever you put there.
+- **Existing ontology**: Put your OWL file(s) in `**src/`**, for example `src/ontology/my-ontology.owl`. The agent will work with whatever you put there.
 - **New ontology (OBO/BFO style)**: You can add an ODK config YAML and ask the agent to seed the project, or create an empty OWL file in `src/ontology/` and describe what you want. The agent will ask whether to use BFO and will add imports and alignment.
 - **New or existing ontology (SULO)**: Same as above—put OWL in `src/` (e.g. `src/ontology/`). When the agent asks which upper ontology to use, choose SULO; it will add SULO imports and alignment.
 
@@ -48,3 +50,4 @@ The agent can store and recall knowledge (e.g. competency questions, scope) in a
 
 - [INIT.md](INIT.md) — Agent workflow (for the agent).
 - [src/README.md](src/README.md) — Notes on the `src/` layout.
+
