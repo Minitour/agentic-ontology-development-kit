@@ -5,4 +5,4 @@ AGENTS.md
 CLAUDE.md
 .qdrant
 src/plans
-# src/resources
+src/resources
