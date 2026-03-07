@@ -16,7 +16,7 @@ Use this skill when the user needs to **validate files in OBO format** (e.g. `.o
 
 **What it does**: Runs **fastobo-validator** in the ODK environment. Validates OBO-format input and exits with success or reports errors to stderr/stdout.
 
-**How it works**: Pass the path(s) to the file(s) to validate as **odk_fastobo_validator** `args`. Working directory is the project root (e.g. `args`: `edit.obo` or `src/ontology/edit.obo`).
+**How it works**: Pass the path(s) to the file(s) to validate as **odk_fastobo_validator** `args`. Working directory is the project root (e.g. `args`: `edit.obo` or `ontology/edit.obo`).
 
 ## Examples (calling the tool)
 

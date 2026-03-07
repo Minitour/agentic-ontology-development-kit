@@ -18,7 +18,7 @@ Use this skill when the user needs **owltools** to get: **reasoning/classificati
 
 **What it does**: Runs **owltools** (OWL API–based utilities) in the ODK environment. Produces output files (reasoned ontology, merged ontology, extracted subset) or validation/report output depending on the arguments.
 
-**How it works**: Pass the full owltools argument string to **odk_owltools** via the `args` parameter. Working directory is the project root; use relative paths (e.g. `edit.owl`, `src/ontology/edit.owl`).
+**How it works**: Pass the full owltools argument string to **odk_owltools** via the `args` parameter. Working directory is the project root; use relative paths (e.g. `edit.owl`, `ontology/edit.owl`).
 
 ## Examples (calling the tool)
 

@@ -9,8 +9,8 @@ Use this skill when the user needs to **run ROBOT** for: **verify** (rule-based 
 
 **Paths**: The ODK Docker wrapper mounts a project directory at `/work`. Paths in `robot_args` are **relative to that mounted root**.
 
-- **Workspace ontology** (no `project_dir`): Omit or leave `project_dir` empty. The current working directory is mounted; paths are relative to it (e.g. `src/ontology/edit.owl` or `ontology/edit.owl` depending on layout).
-- **Cloned project** under `projects/<slug>/`: Pass **`project_dir`** = the clone root (e.g. `projects/owner-repo`). Paths in `robot_args` are then relative to the clone root (e.g. `src/envo/envo-edit.owl`, `src/ontology/edit.owl`). **Always use the built-in odk_robot tool with project_dir** for clones—do not run `node scripts/odk-docker-run.js` manually from the shell.
+- **Workspace ontology** (no `project_dir`): Omit or leave `project_dir` empty. The current working directory is mounted; paths are relative to it (e.g. `ontology/edit.owl`).
+- **Cloned project** under `projects/<slug>/`: Pass **`project_dir`** = the clone root (e.g. `projects/owner-repo`). Paths in `robot_args` are then relative to the clone root (e.g. `ontology/edit.owl` or the edit file path in the project). **Always use the built-in odk_robot tool with project_dir** for clones—do not run `node scripts/odk-docker-run.js` manually from the shell.
 
 ## When to Use This Skill (by outcome)
 
@@ -155,18 +155,18 @@ robot extract --input edit.owl --term-file terms.txt --output subset.owl
 
 | Argument       | Type   | Required | Description |
 |----------------|--------|----------|-------------|
-| **robot_args** | string | yes      | The full ROBOT subcommand and options. Paths relative to the mounted project root (e.g. `src/ontology/edit.owl`, or for a clone `src/envo/envo-edit.owl`). |
-| **project_dir** | string | no       | Optional. When working on a **cloned** ontology under `projects/<slug>/`, set to the clone root (e.g. `projects/owner-repo`) so the correct project is mounted. Omit or leave empty for the workspace ontology. |
+| **robot_args** | string | yes      | The full ROBOT subcommand and options. Paths relative to the mounted project root (e.g. `ontology/edit.owl`). |
+| **project_dir** | string | no       | Optional. When working on a **cloned** or project dir under `projects/<slug>/`, set to that root (e.g. `projects/pizza`, `projects/owner-repo`) so the correct project is mounted. Relative paths resolved from repo root. Omit or leave empty for the workspace ontology. |
 
 ## Examples (calling the tool)
 
-- Verify (workspace): **odk_robot** with `robot_args`: `verify --input src/ontology/edit.owl --output report.txt`
-- Validate profile (clone): **odk_robot** with `robot_args`: `validate-profile --input src/envo/envo-edit.owl --profile DL`, `project_dir`: `projects/owner-repo`
-- Reason: **odk_robot** with `robot_args`: `reason --input src/ontology/edit.owl --reasoner elk --output reasoned.owl`
-- Merge: **odk_robot** with `robot_args`: `merge --inputs src/ontology/a.owl src/ontology/b.owl --output merged.owl`
-- Convert: **odk_robot** with `robot_args`: `convert --input src/ontology/edit.owl --output edit.obo --format obo`
+- Verify (workspace): **odk_robot** with `robot_args`: `verify --input ontology/edit.owl --output report.txt`
+- Validate profile (clone): **odk_robot** with `robot_args`: `validate-profile --input ontology/edit.owl --profile DL`, `project_dir`: `projects/owner-repo`
+- Reason: **odk_robot** with `robot_args`: `reason --input ontology/edit.owl --reasoner elk --output reasoned.owl`
+- Merge: **odk_robot** with `robot_args`: `merge --inputs ontology/a.owl ontology/b.owl --output merged.owl`
+- Convert: **odk_robot** with `robot_args`: `convert --input ontology/edit.owl --output edit.obo --format obo`
 - Template: **odk_robot** with `robot_args`: `template --template templates/terms.yaml --input terms.csv --output terms.owl`
-- Query: **odk_robot** with `robot_args`: `query --input src/ontology/edit.owl --query query.rq results.csv`
+- Query: **odk_robot** with `robot_args`: `query --input ontology/edit.owl --query query.rq results.csv`
 - Version: **odk_robot** with `robot_args`: `--version`
 
 ## Tool Requirement

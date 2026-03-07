@@ -8,8 +8,8 @@ description: Run standard ODK Make targets in an existing ODK project. Use whene
 Use this skill when the user needs **concrete outcomes** from an **existing ODK project**: **test/QC results**, **release artefacts** (merged ontology, OBO, subsets), **updated import modules**, **updated ODK repo files** (Makefile, templates), or the **ODK version**. The repository must already be an ODK project (e.g. created with **odk_seed** or a clone under `projects/`). **Use the odk_make tool** (activate the skill with setup_tools, then call_tool)—do not run `make` via shell.
 
 **Project directory and Make path**:
-- **Workspace ontology** (no clone): Omit or leave **`project_dir`** empty. Set **`make_path`** to where the Makefile lives relative to the mounted root (e.g. `src/ontology`).
-- **Cloned project** under `projects/<slug>/`: Set **`project_dir`** to the clone root (e.g. `projects/owner-repo`). Set **`make_path`** to the path to the Makefile directory inside that clone: many ODK repos use **`src/ontology`**; some use **`src/<id>`** (e.g. `src/envo`). Check the clone’s layout (e.g. `src/ontology/Makefile` vs `src/envo/Makefile`) and pass the correct **make_path**. **Always use the built-in odk_make tool with project_dir and make_path** for clones—do not run the Docker script manually.
+- **Workspace ontology** (no clone): Omit or leave **`project_dir`** empty. Set **`make_path`** to where the Makefile lives relative to the mounted root (e.g. `ontology`).
+- **Cloned project** under `projects/<slug>/`: Set **`project_dir`** to the clone root (e.g. `projects/owner-repo`). Set **`make_path`** to the path to the Makefile directory inside that clone: e.g. **`ontology`** at project root, or **`ontology`** (e.g. `ontology`) when the repo uses that layout. Check the clone’s layout (e.g. `ontology/Makefile` vs `ontology/Makefile`) and pass the correct **make_path**. **Always use the built-in odk_make tool with project_dir and make_path** for clones—do not run the Docker script manually.
 
 ## When to Use This Skill (by outcome)
 
@@ -17,10 +17,10 @@ Use this skill when the user needs **concrete outcomes** from an **existing ODK 
 - User wants **release artefacts** (merged ontology, OBO, subsets as defined by the Makefile) → use **odk_make** with `target`: `prepare_release`; output is files in the release directories.
 - User wants **updated import modules** (all or one) → use **odk_make** with `target`: `refresh-imports` or `refresh-<name>` (e.g. `refresh-go`); output is updated import OWL files.
 - User wants **imports updated but skip large ones** → use **odk_make** with `target`: `refresh-imports-excluding-large` when the project defines it.
-- User wants **ODK Makefile and generated files updated** to a newer ODK version → use **odk_make** with `target`: `update_repo`; output is updated files under `src/ontology/`.
+- User wants **ODK Makefile and generated files updated** to a newer ODK version → use **odk_make** with `target`: `update_repo`; output is updated files under the ontology directory.
 - User wants to **see which ODK version the repo uses** → use **odk_make** with `target`: `odkversion`; output is version string.
 - User wants **documentation updated** (when the project uses ODK-driven docs) → use **odk_make** with `target`: `update_docs` if defined.
-- User wants **another standard Make target** (e.g. `all`, `clean`, or a project-specific target) → use **odk_make** with that `target`. For non-standard or one-off targets, use **odk_run** with `make -C src/ontology <target>`.
+- User wants **another standard Make target** (e.g. `all`, `clean`, or a project-specific target) → use **odk_make** with that `target`. For non-standard or one-off targets, use **odk_run** with `make -C <make_path> <target>`.
 
 ## What Each Target Does and How to Use It
 
@@ -36,7 +36,7 @@ Use this skill when the user needs **concrete outcomes** from an **existing ODK 
 
 ### prepare_release
 
-**What it does**: Builds release artefacts (merged ontology, OBO, subsets, etc.) as defined by the project’s Makefile. **Output**: Release files (e.g. in `src/ontology/` or a release directory).
+**What it does**: Builds release artefacts (merged ontology, OBO, subsets, etc.) as defined by the project’s Makefile. **Output**: Release files (e.g. in the ontology directory or a release directory).
 
 **How it works**: `odk_make` with `target`: `prepare_release`.
 
@@ -46,7 +46,7 @@ Use this skill when the user needs **concrete outcomes** from an **existing ODK 
 
 ### refresh-imports
 
-**What it does**: Updates all import modules (pulled/generated from upstream or mirrors). **Output**: Updated import OWL files (e.g. under `src/ontology/imports/`).
+**What it does**: Updates all import modules (pulled/generated from upstream or mirrors). **Output**: Updated import OWL files (e.g. under the ontology directory's imports/).
 
 **How it works**: `odk_make` with `target`: `refresh-imports`.
 
@@ -76,7 +76,7 @@ Use this skill when the user needs **concrete outcomes** from an **existing ODK 
 
 ### update_repo
 
-**What it does**: Updates the Makefile and ODK-generated files to the latest ODK version. **Output**: Updated files under `src/ontology/` (and possibly CI).
+**What it does**: Updates the Makefile and ODK-generated files to the latest ODK version. **Output**: Updated files under the ontology directory (and possibly CI).
 
 **How it works**: `odk_make` with `target`: `update_repo`.
 
@@ -108,23 +108,23 @@ Use this skill when the user needs **concrete outcomes** from an **existing ODK 
 
 - **Creating a new ODK repo** from a config YAML → use **odk-seed** and **odk_seed**.
 - **Single ROBOT/owltools/dosdp-tools commands** (not via Make) → use **odk-robot** or **odk-run**.
-- **Custom or one-off Make targets** not in the list above → use **odk-run** with `command`: `make -C src/ontology <target>`.
+- **Custom or one-off Make targets** not in the list above → use **odk-run** with `command`: `make -C <make_path> <target>`.
 
 ## Tool and Arguments
 
 | Argument       | Type   | Required | Description |
 |----------------|--------|----------|-------------|
 | **target**     | string | yes      | The Make target. Common: `test`, `prepare_release`, `refresh-imports`, `refresh-imports-excluding-large`, `refresh-<name>`, `update_repo`, `odkversion`, `update_docs`. Use the exact target name the project’s Makefile defines. |
-| **project_dir** | string | no       | Optional. When working on a **cloned** ontology under `projects/<slug>/`, set to the clone root (e.g. `projects/owner-repo`). Omit or leave empty for the workspace ontology. |
-| **make_path**  | string | no       | Path to the Makefile directory relative to the project root. Use **`src/ontology`** for standard ODK layout, or **`src/<id>`** when the repo uses a named subdir (e.g. `src/envo`). Pass this explicitly when using **project_dir** so the correct Makefile is used. |
+| **project_dir** | string | no       | Optional. When working on a **cloned** ontology under `projects/<slug>/`, set to the clone root (e.g. `projects/owner-repo`). Relative paths resolved from repo root. Omit or leave empty for the workspace ontology. |
+| **make_path**  | string | yes      | Path to the Makefile directory relative to the project root (e.g. `ontology`). Required. |
 
 ## Examples (calling the tool)
 
-- **odk_make** with `target`: `test`, `make_path`: `src/ontology`
-- **odk_make** with `target`: `prepare_release`, `make_path`: `src/ontology`
-- **odk_make** with `target`: `refresh-imports`, `make_path`: `src/ontology`
-- **odk_make** with `target**: `test`, `project_dir`: `projects/owner-repo`, `make_path`: `src/envo` (for a clone that uses `src/envo/Makefile`)
-- **odk_make** with `target`: `validate-dl-profile`, `project_dir`: `projects/owner-repo`, `make_path`: `src/envo` (project-specific target)
+- **odk_make** with `target`: `test`, `make_path`: `ontology`
+- **odk_make** with `target`: `prepare_release`, `make_path`: `ontology`
+- **odk_make** with `target`: `refresh-imports`, `make_path`: `ontology`
+- **odk_make** with `target`: `test`, `project_dir`: `projects/owner-repo`, `make_path`: `ontology`
+- **odk_make** with `target`: `validate-dl-profile`, `project_dir`: `projects/owner-repo`, `make_path`: `ontology`
 
 ## Tool Requirement
 

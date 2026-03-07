@@ -21,7 +21,7 @@ When the scope matches, you get a **full project layout**: `projects/<project_di
 
 **How it works**:
 - **config_path**: Path to the ODK config YAML relative to the project root. Place the config under the target project directory, e.g. `projects/<project_dir>/<id>-odk.yaml` (e.g. `projects/pizza/pizza-odk.yaml`). The seed runs in a container with the project directory mounted; the copy step places the generated ontology layout under that same project directory.
-- **extra**: Optional string of extra CLI arguments (e.g. `--commit-artefacts`). Git identity is supplied by default in this repo.
+- **extra**: Optional string of extra CLI arguments (e.g. `--commit-artefacts`). Git identity is supplied in this repo.
 
 **Output**: ODK writes to `target/<id>/`; the wrapper copies the result into the project directory, so the ontology layout ends up at `projects/<project_dir>/ontology/`, `projects/<project_dir>/sparql/`, etc.
 
@@ -37,7 +37,7 @@ When the scope matches, you get a **full project layout**: `projects/<project_di
 | Argument       | Type   | Required | Description |
 |----------------|--------|----------|-------------|
 | **config_path** | string | yes      | Path to the ODK config YAML relative to repo root (e.g. `projects/pizza/pizza-odk.yaml`). Config must live under `projects/<project_dir>/`. |
-| **extra**       | string | no       | Optional extra arguments (e.g. `--commit-artefacts`). Git identity is provided by default in this repo. |
+| **extra**       | string | no       | Optional extra arguments (e.g. `--commit-artefacts`). Git identity is provided in this repo. |
 
 ## Minimal ODK config (BFO-aligned) — no schema lookup needed
 

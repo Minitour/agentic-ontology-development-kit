@@ -19,8 +19,8 @@ Use **web fetch or search** (and optionally terminal to list files if the repo i
 
 1. **Identify the repo**: From the user's message, get the repo URL or `owner/repo` (e.g. from a GitHub link).
 2. **Gather structure**: Fetch or read:
-   - **README**: scope, build instructions, where ontology source lives (often `src/ontology/` or `src/<id>/`).
-   - **Top-level layout**: key dirs (e.g. `src/`, `imports/`, `subsets/`, `mappings/`, `docs/`, `.github/`).
+   - **README**: scope, build instructions, where ontology source lives (often `ontology/` or the project's edit directory).
+   - **Top-level layout**: key dirs (e.g. `ontology/`, `imports/`, `subsets/`, `mappings/`, `docs/`, `.github/`).
    - **Build system**: ODK Makefile, Docker, CI (e.g. `.github/workflows/*.yml`), and how to run tests/QC (e.g. `make test`, `make -C ontology test`).
    - **CONTRIBUTING** (or "Contributing" in README): issue-first?, required fields for new term requests, link to editor guides or OBO Academy.
    - **Issue/PR conventions**: presence of `.github/ISSUE_TEMPLATE/`, `.github/PULL_REQUEST_TEMPLATE.md`, CODEOWNERS; common labels and branch naming (e.g. `issue-N`, `feature/term-name`).
@@ -30,8 +30,8 @@ Use **web fetch or search** (and optionally terminal to list files if the repo i
 
 Return a concise report with:
 
-- **Layout**: Top-level directories and where the ontology edit file / Makefile lives (e.g. `src/ontology/`, `src/<id>/`). Note the **Make path** (path to the Makefile directory relative to repo root, e.g. `src/ontology` or `src/envo`) so **odk_make** can be called with the correct **make_path** when working on a clone.
-- **Build and CI**: How to build and run QC locally (e.g. ODK Docker, `make -C src/ontology test` or `make -C src/envo test`); what CI runs on PRs.
+- **Layout**: Top-level directories and where the ontology edit file / Makefile lives (e.g. `ontology/`). Note the **Make path** (path to the Makefile directory relative to repo root, e.g. `ontology`) so **odk_make** can be called with the correct **make_path** when working on a clone.
+- **Build and CI**: How to build and run QC locally (e.g. ODK Docker, `make -C ontology test`); what CI runs on PRs.
 - **Contributing**: Issue-first? Where to find CONTRIBUTING; main contribution types (e.g. new term request, synonym, obsoletion).
 - **Issue/PR expectations**: Any issue templates (NTR, bug, etc.); PR checklist or description expectations (e.g. "Closes #N", change table); review expectations if visible.
 

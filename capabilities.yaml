@@ -179,8 +179,8 @@ agents:
       content: >-
         For ontology work: edit OWL only via the ontology-editor tools (never by
         hand); run ROBOT (reason, verify, merge, etc.) via the odk_robot tool;
-        run ODK Make targets via odk_make. Paths for ODK tools are relative to
-        src/ (e.g. ontology/agentic-ai.owl).
+        run ODK Make targets via odk_make. Paths for ODK tools are relative to the mounted project root
+        (e.g. ontology/agentic-ai.owl).
     - type: inline
       id: external_ontology_contribution
       content: >-
@@ -361,17 +361,24 @@ tools:
     group: odk
     description: >-
       Run an arbitrary ODK command (custom make target or other tool not covered
-      by dedicated tools)
+      by dedicated tools). Optional project_dir mounts that dir at /work (e.g.
+      projects/pizza). Paths in command are relative to repo root or project_dir.
     def:
       run:
-        cmd: node scripts/odk-docker-run.js "{command}"
+        cmd: node scripts/odk-docker-run.js "{project_dir}" "{command}"
         args:
           - name: command
             type: string
             description: >-
-              Full command (e.g. make -C src/ontology custom-target, Konclude -i
+              Full command (e.g. make -C ontology custom-target, Konclude -i
               edit.owl -o out.owl). No robot—use odk_robot.
             required: true
+          - name: project_dir
+            type: string
+            description: >-
+              Optional. Project root to mount (e.g. projects/pizza). Empty or
+              omit to use current working directory.
+            required: false
   - id: odk_owltools
     type: command
     group: odk
@@ -464,8 +471,8 @@ tools:
     type: command
     group: odk
     description: >-
-      Seed a new ODK ontology repo from a config YAML, then copy target/<id>/src
-      into the project directory (e.g. projects/<project_dir>/).
+      Seed a new ODK ontology repo from a config YAML, then copy the generated
+      layout into the project directory (e.g. projects/<project_dir>/).
     def:
       run:
         cmd: node scripts/odk-seed-with-copy.js {config_path} {extra}
@@ -480,14 +487,14 @@ tools:
             type: string
             description: >-
               Optional extra seed arguments (e.g. --commit-artefacts). Leave
-              empty if not needed. Git identity is supplied by default.
+              empty if not needed. Git identity is supplied.
             required: false
   - id: odk_robot
     type: command
     group: odk
     description: >-
       Run ROBOT inside ODK Docker (validate, merge, reason, convert, template,
-      query). Paths relative to project root (or src/ when project_dir empty).
+      query). Paths relative to project root (or cwd when project_dir empty).
       Use project_dir for clones under projects/ (e.g. projects/owner-repo).
     def:
       run:
@@ -497,7 +504,7 @@ tools:
             type: string
             description: >-
               ROBOT arguments; paths relative to mounted root (e.g. reason
-              --input src/ontology/edit.owl or src/envo/envo-edit.owl)
+              --input ontology/edit.owl or the edit file path in the project)
             required: true
           - name: project_dir
             type: string
@@ -511,7 +518,7 @@ tools:
     description: >-
       Run Makefile target in an ODK repo (test, prepare_release, etc.). Use
       project_dir for clones under projects/; use make_path when Makefile is
-      not in src/ontology (e.g. src/envo).
+      not in the ontology directory.
     def:
       run:
         cmd: node scripts/odk-docker-run.js "{project_dir}" "make -C {make_path} {target}"
@@ -526,11 +533,12 @@ tools:
             type: string
             description: >-
               Optional. Project root to mount (e.g. projects/owner-repo).
-              Empty or omit for workspace ontology.
+              Empty or omit for workspace ontology. Relative paths resolved from
+              repo root.
             required: false
           - name: make_path
             type: string
             description: >-
-              Path to Makefile dir relative to project root (e.g. src/ontology
-              or src/envo for src/<id>/ layout). Pass explicitly for clones.
-            required: false
+              Path to Makefile directory relative to project root (e.g.
+              ontology). Required; pass the path where the Makefile lives.
+            required: true
