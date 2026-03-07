@@ -1,0 +1,478 @@
+providers:
+  - cursor
+  - claude-code
+options:
+  toolExposure: on-demand
+skills:
+  - id: capabilities-manager
+    type: github
+    def:
+      repo: infragate/capa@capabilities-manager
+      description: Guide for managing capabilities with capa CLI
+      requires:
+        - capa_install
+        - find_skills
+  - id: ontology-editor
+    type: local
+    def:
+      path: ./skills/ontology-editor
+      description: OWL-MCP tools for ontology editing (axioms, prefixes, config)
+      requires:
+        - add_axiom
+        - add_axioms
+        - remove_axiom
+        - find_axioms
+        - get_all_axioms
+        - add_prefix
+        - ontology_metadata
+        - get_labels_for_iri
+        - add_axiom_by_name
+        - remove_axiom_by_name
+        - find_axioms_by_name
+        - add_prefix_by_name
+        - get_labels_for_iri_by_name
+        - list_configured_ontologies
+        - get_ontology_config
+        - configure_ontology
+        - remove_ontology_config
+        - register_ontology_in_config
+        - load_and_register_ontology
+  - id: odk-run
+    type: local
+    def:
+      path: ./skills/odk-run
+      description: >-
+        Run custom Make targets or other ODK tools (Konclude, jena,
+        relation-graph, etc.) not covered by dedicated skills
+      requires:
+        - odk_run
+  - id: odk-owltools
+    type: local
+    def:
+      path: ./skills/odk-owltools
+      description: Run owltools for reasoning, merge, extract, OWL API operations
+      requires:
+        - odk_owltools
+  - id: odk-dosdp-tools
+    type: local
+    def:
+      path: ./skills/odk-dosdp-tools
+      description: Run dosdp-tools for pattern-based ontology generation
+      requires:
+        - odk_dosdp_tools
+  - id: odk-fastobo-validator
+    type: local
+    def:
+      path: ./skills/odk-fastobo-validator
+      description: Validate OBO-format files
+      requires:
+        - odk_fastobo_validator
+  - id: odk-riot
+    type: local
+    def:
+      path: ./skills/odk-riot
+      description: Convert or validate RDF with riot
+      requires:
+        - odk_riot
+  - id: odk-sparql
+    type: local
+    def:
+      path: ./skills/odk-sparql
+      description: Run SPARQL queries over ontologies
+      requires:
+        - odk_sparql
+  - id: odk-runoak
+    type: local
+    def:
+      path: ./skills/odk-runoak
+      description: Query ontologies with OAKLIB (runoak)
+      requires:
+        - odk_runoak
+  - id: odk-sssom
+    type: local
+    def:
+      path: ./skills/odk-sssom
+      description: Work with SSSOM mapping files (validate, convert, merge)
+      requires:
+        - odk_sssom
+  - id: odk-seed
+    type: local
+    def:
+      path: ./skills/odk-seed
+      description: Seed a new ODK ontology repo from a config YAML
+      requires:
+        - odk_seed
+  - id: odk-robot
+    type: local
+    def:
+      path: ./skills/odk-robot
+      description: >-
+        Run ROBOT in ODK Docker (verify, merge, reason, convert, template,
+        query)
+      requires:
+        - odk_robot
+  - id: odk-make
+    type: local
+    def:
+      path: ./skills/odk-make
+      description: >-
+        Run ODK Make targets (test, prepare_release, refresh-imports,
+        update_repo)
+      requires:
+        - odk_make
+  - id: qdrant-memory
+    type: local
+    def:
+      path: ./skills/qdrant-memory
+      description: >-
+        Store and retrieve knowledge in Qdrant as long-term memory (from data
+        sources)
+      requires:
+        - qdrant_store
+        - qdrant_find
+  - id: skill-creator
+    type: github
+    def:
+      repo: anthropics/skills@skill-creator
+agents:
+  base:
+    type: local
+    path: ./INIT.md
+  additional:
+    - type: inline
+      id: capa_tool_usage
+      content: >-
+        After learning a new skill, call the `setup_tools` tool to activate it,
+        then use `call_tool` to invoke the relevant tool.
+    - type: inline
+      id: ontology_builder_tools
+      content: >-
+        For ontology work: edit OWL only via the ontology-editor tools (never by
+        hand); run ROBOT (reason, verify, merge, etc.) via the odk_robot tool;
+        run ODK Make targets via odk_make. Paths for ODK tools are relative to
+        src/ (e.g. ontology/agentic-ai.owl).
+servers:
+  - id: owl-mcp
+    type: mcp
+    description: OWL ontology editing via MCP (find/add/remove axioms, functional syntax)
+    def:
+      cmd: uvx
+      args:
+        - owl-mcp
+  - id: qdrant
+    type: mcp
+    description: Qdrant vector store for long-term memory (store and retrieve knowledge)
+    def:
+      cmd: uvx
+      args:
+        - mcp-server-qdrant
+      env:
+        QDRANT_LOCAL_PATH: ./.qdrant
+        COLLECTION_NAME: main
+        EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
+tools:
+  - id: capa_install
+    type: command
+    def:
+      run:
+        cmd: capa install
+        args: []
+  - id: find_skills
+    type: command
+    def:
+      init:
+        cmd: npx skills@latest
+      run:
+        cmd: npx skills find {query}
+        args:
+          - name: query
+            type: string
+            description: Search query for finding skills
+            required: true
+  - id: qdrant_store
+    type: mcp
+    description: >-
+      Store information in Qdrant for long-term memory (knowledge extracted from
+      data sources)
+    def:
+      server: '@qdrant'
+      tool: qdrant-store
+  - id: qdrant_find
+    type: mcp
+    description: Retrieve relevant information from Qdrant by semantic search
+    def:
+      server: '@qdrant'
+      tool: qdrant-find
+  - id: add_axiom
+    type: mcp
+    description: Add one axiom to an OWL file (functional syntax)
+    def:
+      server: '@owl-mcp'
+      tool: add_axiom
+  - id: add_axioms
+    type: mcp
+    description: Add multiple axioms to an OWL file
+    def:
+      server: '@owl-mcp'
+      tool: add_axioms
+  - id: remove_axiom
+    type: mcp
+    description: Remove one axiom from an OWL file
+    def:
+      server: '@owl-mcp'
+      tool: remove_axiom
+  - id: find_axioms
+    type: mcp
+    description: Find axioms matching a pattern in an OWL file
+    def:
+      server: '@owl-mcp'
+      tool: find_axioms
+  - id: get_all_axioms
+    type: mcp
+    description: Get all axioms from an OWL file
+    def:
+      server: '@owl-mcp'
+      tool: get_all_axioms
+  - id: add_prefix
+    type: mcp
+    description: Add a prefix mapping to an OWL file
+    def:
+      server: '@owl-mcp'
+      tool: add_prefix
+  - id: ontology_metadata
+    type: mcp
+    description: Get ontology metadata/annotations
+    def:
+      server: '@owl-mcp'
+      tool: ontology_metadata
+  - id: get_labels_for_iri
+    type: mcp
+    description: Get labels for an IRI in an OWL file
+    def:
+      server: '@owl-mcp'
+      tool: get_labels_for_iri
+  - id: add_axiom_by_name
+    type: mcp
+    description: Add axiom to a configured ontology by name
+    def:
+      server: '@owl-mcp'
+      tool: add_axiom_by_name
+  - id: remove_axiom_by_name
+    type: mcp
+    description: Remove axiom from a configured ontology by name
+    def:
+      server: '@owl-mcp'
+      tool: remove_axiom_by_name
+  - id: find_axioms_by_name
+    type: mcp
+    description: Find axioms in a configured ontology by name
+    def:
+      server: '@owl-mcp'
+      tool: find_axioms_by_name
+  - id: add_prefix_by_name
+    type: mcp
+    description: Add prefix to a configured ontology by name
+    def:
+      server: '@owl-mcp'
+      tool: add_prefix_by_name
+  - id: get_labels_for_iri_by_name
+    type: mcp
+    description: Get labels for an IRI in a configured ontology by name
+    def:
+      server: '@owl-mcp'
+      tool: get_labels_for_iri_by_name
+  - id: list_configured_ontologies
+    type: mcp
+    description: List all configured ontologies
+    def:
+      server: '@owl-mcp'
+      tool: list_configured_ontologies
+  - id: get_ontology_config
+    type: mcp
+    description: Get configuration for one ontology by name
+    def:
+      server: '@owl-mcp'
+      tool: get_ontology_config
+  - id: configure_ontology
+    type: mcp
+    description: Add or update an ontology in config
+    def:
+      server: '@owl-mcp'
+      tool: configure_ontology
+  - id: remove_ontology_config
+    type: mcp
+    description: Remove an ontology from config
+    def:
+      server: '@owl-mcp'
+      tool: remove_ontology_config
+  - id: register_ontology_in_config
+    type: mcp
+    description: Register an already-loaded ontology in config
+    def:
+      server: '@owl-mcp'
+      tool: register_ontology_in_config
+  - id: load_and_register_ontology
+    type: mcp
+    description: Load an OWL file and register it in config (create if missing)
+    def:
+      server: '@owl-mcp'
+      tool: load_and_register_ontology
+  - id: odk_run
+    type: command
+    group: odk
+    description: >-
+      Run an arbitrary ODK command (custom make target or other tool not covered
+      by dedicated tools)
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "{command}"
+        args:
+          - name: command
+            type: string
+            description: >-
+              Full command (e.g. make -C src/ontology custom-target, Konclude -i
+              edit.owl -o out.owl). No robot—use odk_robot.
+            required: true
+  - id: odk_owltools
+    type: command
+    group: odk
+    description: Run owltools (reasoning, merge, extract, OWL API operations)
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "owltools {args}"
+        args:
+          - name: args
+            type: string
+            description: >-
+              owltools arguments (e.g. edit.owl --reasoner elk --run-reasoner -o
+              reasoned.owl)
+            required: true
+  - id: odk_dosdp_tools
+    type: command
+    group: odk
+    description: Run dosdp-tools (pattern-based ontology generation from YAML + CSV)
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "dosdp-tools {args}"
+        args:
+          - name: args
+            type: string
+            description: >-
+              dosdp-tools arguments (e.g. generate --template t.yaml --ontology
+              edit.owl --outfile out.owl)
+            required: true
+  - id: odk_fastobo_validator
+    type: command
+    group: odk
+    description: Validate OBO-format files (syntax and structure)
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "fastobo-validator {args}"
+        args:
+          - name: args
+            type: string
+            description: File path(s) to validate (e.g. edit.obo)
+            required: true
+  - id: odk_riot
+    type: command
+    group: odk
+    description: Convert or validate RDF (RDF/XML, Turtle, N-Triples, JSON-LD)
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "riot {args}"
+        args:
+          - name: args
+            type: string
+            description: riot arguments (e.g. --output=ttl edit.owl)
+            required: true
+  - id: odk_sparql
+    type: command
+    group: odk
+    description: Run SPARQL queries against RDF/ontology files
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "sparql {args}"
+        args:
+          - name: args
+            type: string
+            description: sparql arguments (e.g. --query query.rq --data edit.owl)
+            required: true
+  - id: odk_runoak
+    type: command
+    group: odk
+    description: Query and navigate ontologies with OAKLIB (search, ancestors, descendants)
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "runoak {args}"
+        args:
+          - name: args
+            type: string
+            description: runoak arguments (e.g. -i edit.owl search "term")
+            required: true
+  - id: odk_sssom
+    type: command
+    group: odk
+    description: Validate, convert, or merge SSSOM mapping files
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "sssom {args}"
+        args:
+          - name: args
+            type: string
+            description: sssom arguments (e.g. validate mappings.tsv)
+            required: true
+  - id: odk_seed
+    type: command
+    group: odk
+    description: >-
+      Seed a new ODK ontology repo from a config YAML, then copy target/<id>/src
+      into src/
+    def:
+      run:
+        cmd: node scripts/odk-seed-with-copy.js {config_path} {extra}
+        args:
+          - name: config_path
+            type: string
+            description: >-
+              Path to the ODK config YAML relative to project root (e.g.
+              myont-odk.yaml or src/ontology/ont-odk.yaml)
+            required: true
+          - name: extra
+            type: string
+            description: >-
+              Optional extra seed arguments (e.g. --commit-artefacts). Leave
+              empty if not needed. Git identity is supplied by default.
+            required: false
+  - id: odk_robot
+    type: command
+    group: odk
+    description: >-
+      Run ROBOT inside ODK Docker (validate, merge, reason, convert, template,
+      query). Paths relative to src/ (e.g. ontology/agentic-ai.owl).
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "robot {robot_args}"
+        args:
+          - name: robot_args
+            type: string
+            description: >-
+              ROBOT arguments; paths relative to src/ (e.g. reason --input
+              ontology/agentic-ai.owl --reasoner elk --output
+              ontology/agentic-ai-reasoned.owl)
+            required: true
+  - id: odk_make
+    type: command
+    group: odk
+    description: >-
+      Run Makefile target in ontology dir of an ODK repo (test, prepare_release,
+      refresh-imports, etc.). Container mounts src/ as /work, so use -C ontology.
+    def:
+      run:
+        cmd: node scripts/odk-docker-run.js "make -C ontology {target}"
+        args:
+          - name: target
+            type: string
+            description: >-
+              Make target (e.g. test, prepare_release, refresh-imports,
+              update_repo, odkversion)
+            required: true
