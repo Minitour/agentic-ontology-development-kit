@@ -36,7 +36,7 @@ robot verify --input edit.owl --output report.txt
 
 **Example** (verify only, no output file):
 ```text
-robot verify --input .base/bfo.owl
+robot verify --input upper-level/bfo.owl
 ```
 
 ---
@@ -63,9 +63,9 @@ robot validate-profile --input edit.owl --profile DL
 
 **Example**:
 ```text
-robot merge --inputs .base/bfo.owl .base/sulo.owl edit.owl --output merged.owl
+robot merge --inputs upper-level/bfo.owl upper-level/sulo.owl edit.owl --output merged.owl
 ```
-**odk_robot** call: `robot_args` = `merge --inputs .base/bfo.owl .base/sulo.owl edit.owl --output merged.owl`
+**odk_robot** call: `robot_args` = `merge --inputs upper-level/bfo.owl upper-level/sulo.owl edit.owl --output merged.owl`
 
 ---
 
@@ -158,7 +158,7 @@ robot extract --input edit.owl --term-file terms.txt --output subset.owl
 
 - Verify: **odk_robot** with `robot_args`: `verify --input edit.owl --output report.txt`
 - Validate profile: **odk_robot** with `robot_args`: `validate-profile --input edit.owl --profile DL`
-- Merge: **odk_robot** with `robot_args`: `merge --inputs .base/bfo.owl edit.owl --output merged.owl`
+- Merge: **odk_robot** with `robot_args`: `merge --inputs upper-level/bfo.owl edit.owl --output merged.owl`
 - Reason: **odk_robot** with `robot_args`: `reason --input edit.owl --reasoner elk --output reasoned.owl`
 - Convert: **odk_robot** with `robot_args`: `convert --input edit.owl --output edit.obo --format obo`
 - Template: **odk_robot** with `robot_args`: `template --template templates/terms.yaml --input terms.csv --output terms.owl`

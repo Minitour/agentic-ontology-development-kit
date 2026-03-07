@@ -3,7 +3,7 @@
  * Run a command inside the ODK Docker container with the current directory
  * mounted at /work. Cross-platform (Windows and Mac/Linux).
  * Usage: node scripts/odk-docker-run.js "<command>"
- * Example: node scripts/odk-docker-run.js "robot verify --input .base/bfo.owl"
+ * Example: node scripts/odk-docker-run.js "robot verify --input upper-level/bfo.owl"
  */
 const { spawnSync } = require('child_process');
 const cwd = process.cwd();

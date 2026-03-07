@@ -34,7 +34,7 @@ Install these before starting:
 - **New ontology (OBO/BFO style)**: You can add an ODK config YAML and ask the agent to seed the project, or create an empty OWL file in `src/ontology/` and describe what you want. The agent will ask whether to use BFO and will add imports and alignment.
 - **New or existing ontology (SULO)**: Same as above—put OWL in `src/` (e.g. `src/ontology/`). When the agent asks which upper ontology to use, choose SULO; it will add SULO imports and alignment.
 
-Upper ontologies (BFO and SULO) live in `.base/` for reference. You do not add them to your ontology yourself; the agent does that when you choose one.
+Upper ontologies (BFO and SULO) live in `upper-level/` for reference. You do not add them to your ontology yourself; the agent does that when you choose one.
 
 ## Project layout (reference)
 
@@ -46,7 +46,7 @@ ontology-builder/
 │   └── ontology/       # e.g. src/ontology/my-ontology.owl
 |   └── plans/          # Draft proposals made by the agent
 |   └── resources/      # Resources to give to the agent (such as PDFs, CSVs etc.)  
-├── .base/              # BFO and SULO (reference only)
+├── upper-level/              # BFO and SULO (reference only)
 └── skills/             # Agent skills
 ```
 
