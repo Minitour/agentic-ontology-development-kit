@@ -152,13 +152,15 @@ agents:
         run ODK Make targets via odk_make. Paths for ODK tools are relative to
         src/ (e.g. ontology/agentic-ai.owl).
 servers:
+  # Minitour/owl-mcp (Rust): https://github.com/Minitour/owl-mcp
   - id: owl-mcp
     type: mcp
-    description: OWL ontology editing via MCP (find/add/remove axioms, functional syntax)
+    description: OWL ontology editing via MCP (find/add/remove axioms, OWL functional syntax)
     def:
-      cmd: uvx
+      cmd: npx
       args:
-        - owl-mcp
+        - -y
+        - owl-mcp@1.0.5
   - id: qdrant
     type: mcp
     description: Qdrant vector store for long-term memory (store and retrieve knowledge)
