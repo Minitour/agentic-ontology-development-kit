@@ -10,7 +10,7 @@ These are your instructions when building and iterating on ontologies. You act a
 - **Top-down construction**: Establish upper-level concepts and relations before mid- and lower-level detail.
 - **Reuse over reinvention**: Search existing ontologies and registries (OBO Foundry, BioPortal, OntoBee, LOV) before defining new terms.
 - **Upper ontology (new projects)**: When **starting a new ontology from scratch**, **ask the user** whether they want to use an upper-level ontology (e.g. BFO or SULO) or create from scratch without one. If they want one, ask which; do not assume or choose for them. Only add imports in Step 6 when they have chosen an upper ontology. When adding `owl:imports`, use the **canonical IRI**: BFO → `http://purl.obolibrary.org/obo/bfo.owl`, SULO → `https://w3id.org/sulo/`. **When using an upper-level ontology, always use the existing object and data properties from that ontology; do not define new object or data properties** unless the user explicitly instructs otherwise.
-- **Draft approval before formalization**: Do **not** write the proposal to `projects/<project_dir>/plans` or proceed to Step 6 (formalization) until the user has **explicitly confirmed or approved** the draft. Present the draft (e.g. scope, CQs, class/property diagram), then wait for their approval before adding any proposal file or OWL.
+- **Draft approval before formalization**: In Step 4, **write the proposal to `projects/<project_dir>/plans/PROPOSAL-<timestamp>.md` immediately** (with `status: draft`) and present it in the conversation at the same time. The user reviews and may edit the file directly. Do **not** proceed to Step 6 (formalization) until the user has **explicitly approved** the draft. On approval, update the file's status to `approved`.
 - **Do not modify OWL files**: Never directly edit OWL files by hand. Use the **ontology-editor** tools (OWL-MCP) for all axiom, prefix, and metadata changes. Use **ODK/ROBOT** via the provided skills and tools (e.g. **odk_robot**, **odk_make**)—not raw shell or `robot`/`make` commands.
 - **User-provided context**: Always check **`projects/<project_dir>/resources`** at the start of a task to see if the user has placed any files there for context (e.g. PDFs, guidelines, spreadsheets). Treat these as primary sources for scope and knowledge exploration alongside any files the user attaches in the conversation.
 - **Issue-first (external contributions)**: Many ontology projects require opening an issue (e.g. new term request) before submitting a PR; check the target repo’s CONTRIBUTING and issue templates. When contributing to an external ontology, cloned repos live in **`projects/`** (gitignored); work from that project’s directory for all edits, QC, and PRs.
@@ -25,7 +25,7 @@ Follow these steps when extending or creating an ontology. Align your suggestion
 
 Help clarify the change the user wants. Analyze and structure it.
 
-**First:** Use the **semlocal** skill to search for prior scope, CQs, user preferences, or decisions from earlier sessions on this ontology (e.g. query: "scope for <ontology name>", "user preferences for <domain>"). Use any relevant results to inform the scope discussion.
+**First:** Use the **semlocal** skill to search for prior scope, CQs, user preferences, or decisions from earlier sessions on this ontology (e.g. query: "scope for <ontology name>", "user preferences for <domain>"). **Always use `--collection <project_dir>`** (the project directory name, e.g. `--collection wine`) so each project's knowledge is isolated. Use any relevant results to inform the scope discussion.
 
 **Possible cases:**
 - Starting a new ontology (domain, purpose, namespace, upper ontology alignment)
@@ -49,7 +49,7 @@ Gather domain knowledge from the user’s data sources (PDFs, Word, Excel/CSV, U
 - **Codebases or many files:** Use an **explore** subagent with thoroughness appropriate to the task (e.g. "quick" for a narrow search, "medium" or "very thorough" for broad exploration). Specify what to find (e.g. ontology terms, API patterns) and that the subagent should return a concise summary of findings.
 - Provide the subagent with **scope and CQs** from Step 1 and the **source path or URL** so it can focus extraction. Specify in the prompt that the subagent must return its summary to you (the parent); do not assume the user sees subagent output unless you relay it.
 
-**Before reading a new source:** Use the **semlocal** skill (`semlocal_find`) to search for previously extracted knowledge relevant to this scope (e.g. "concepts from ESMO fatigue guideline", "cancer treatment contributing factors"). If the local index already has relevant summaries from a prior session, use them instead of re-extracting from the same source (or delegate to a subagent only for new sources).
+**Before reading a new source:** Use the **semlocal** skill (`semlocal_find`) with `--collection <project_dir>` to search for previously extracted knowledge relevant to this scope (e.g. "concepts from ESMO fatigue guideline", "cancer treatment contributing factors"). If the local index already has relevant summaries from a prior session, use them instead of re-extracting from the same source (or delegate to a subagent only for new sources).
 
 **Per source, you (or the subagent you delegate to):**
 - Use the scope from Step 1
@@ -57,7 +57,7 @@ Gather domain knowledge from the user’s data sources (PDFs, Word, Excel/CSV, U
 - Quote or cite excerpts that justify each finding
 - Note confidence where the source is ambiguous
 
-**After extracting from each source:** Use the **semlocal** skill (`semlocal_store`) to store a structured summary of the extracted knowledge. Include metadata: `source` (file name or URL), `ontology` (ontology name or IRI), `step` ("knowledge_exploration"), `date`, and `confidence` where relevant.
+**After extracting from each source:** Use the **semlocal** skill (`semlocal_store`) with `--collection <project_dir>` to store a structured summary of the extracted knowledge. Include metadata: `source` (file name or URL), `ontology` (ontology name or IRI), `step` ("knowledge_exploration"), `date`, and `confidence` where relevant.
 
 If no sources are provided, use web search with the scope as the query.
 
@@ -76,37 +76,71 @@ Synthesize findings and map them to existing terminology. Do not propose ontolog
 2. Terms to define as new classes, properties, or individuals
 3. Open questions for the user to clarify
 
-**After organizing:** Use the **semlocal** skill (`semlocal_store`) to store the knowledge summary (reuse terms, new terms, gaps, candidate axiom patterns). Include metadata: `ontology`, `step` ("knowledge_organization"), `date`.
+**After organizing:** Use the **semlocal** skill (`semlocal_store`) with `--collection <project_dir>` to store the knowledge summary (reuse terms, new terms, gaps, candidate axiom patterns). Include metadata: `ontology`, `step` ("knowledge_organization"), `date`.
 
-### Step 4 — Draft Change Proposal
-Produce an informal, structured graph for the user's review; present it in the conversation (e.g. scope, CQs, class/property diagram in Mermaid or structured text). Do not create or write PROPOSAL.md under `projects/<project_dir>/plans` until the user has explicitly approved the draft (Step 5).
+### Step 4 — Draft Change Proposal (Plan Mode)
+
+Produce an informal, structured proposal and **simultaneously** write it to a plan file and present it in the conversation. The plan file is a living document: you create it immediately, the user reviews and may edit it directly, and you update it in place on each revision.
 
 **Draft format (human-readable, not yet OWL/RDF):**
 - Labeled node–edge diagram (or structured text if no visual)
 - Each node: candidate term, type (class / object property / data property / individual), proposed definition
 - Each edge: relation type (subClassOf, partOf, relatedTo, etc.)
 - Inline mappings to external ontology terms
-- Use mermaid chart syntax to show the proposal
+- Use mermaid chart syntax to show the proposal. Apply color coding to distinguish existing from new content:
+  - **Existing concepts** (reused from external ontologies or already in the ontology): **blue** fill (`style NodeName fill:#60a5fa,stroke:#2563eb,color:#1e3a5f`)
+  - **New proposed concepts** (classes, properties, individuals being introduced): **yellow** fill (`style NodeName fill:#fbbf24,stroke:#d97706,color:#78350f`)
+  - **Existing edges**: default arrow style (no extra styling)
+  - **New proposed edges**: **green** stroke (`linkStyle N stroke:#16a34a,stroke-width:2px`)
+  - Include a legend subgraph at the bottom of the diagram showing the color key
 - Revise in response to feedback until the user is satisfied
 
 Do **not** output formal OWL/RDF in this step; focus on clarity and easy revision.
 
-**End of Step 4:** Always close the draft with a short **“What I need from you”** list: e.g. whether to use an upper ontology and which one (for new ontologies), explicit approval of the draft, and any optional preferences (namespace, file name). State clearly that you will not write any file to `projects/<project_dir>/plans` or proceed to Step 6 until the user provides those.
+**Writing the plan file — do this immediately, not after approval:**
+
+1. **Create the directory** `projects/<project_dir>/plans/` if it does not already exist.
+2. **Write the plan file** to `projects/<project_dir>/plans/PROPOSAL-<YYYYMMDD-HHmmss>.md` (e.g. `PROPOSAL-20260313-143022.md`). Use the current timestamp so each plan gets a unique file name and older plans are preserved. This happens at the same time as presenting the draft in the conversation — not later.
+3. **Tell the user** the file path so they can open, review, and edit it directly.
+4. When changes are requested (Step 5), **update the plan file in place** so it always reflects the latest revision.
+
+**File content requirements:**
+- Start with a YAML front-matter block: `title`, `date`, `ontology` (name or IRI), `upper_ontology` (BFO / SULO / none), `status: draft` (changed to `approved` once the user approves).
+- Include every section from the plan file structure below.
+- The Mermaid diagram must be included as a fenced code block (` ```mermaid ... ``` `).
+- Do not include OWL/RDF syntax — keep it human-readable.
+
+**Plan file structure — the plan file (and the draft you present) must include all of these sections:**
+
+1. **Scope** — one-paragraph summary of the domain and purpose of this change
+2. **Competency Questions** — numbered list of CQs from Step 1
+3. **Upper Ontology** — which upper ontology is used (BFO / SULO / none) and why, or "N/A" for extensions
+4. **Class Hierarchy** — Mermaid diagram showing proposed classes and their subclass / part-of / related-to edges
+5. **Properties** — table of proposed object properties and data properties (columns: name, type, domain, range, source ontology or "new")
+6. **Individuals** — list of named individuals, if any
+7. **External Term Reuse** — table of terms reused from external ontologies (columns: label, IRI, source ontology)
+8. **Open Questions** — any unresolved items the user should decide on
+9. **Sources** — list of data sources consulted (file names, URLs, SPARQL endpoints)
+
+**End of Step 4:** Always close the draft with a short **“What I need from you”** list: e.g. whether to use an upper ontology and which one (for new ontologies), explicit approval of the draft, and any optional preferences (namespace, file name). State clearly that you will not proceed to Step 6 until the user approves.
 
 ### Step 5 — User Feedback Loop
 
-**Wait for the user to review and approve the draft.** Do not proceed to Step 6 or write any proposal file until they have explicitly confirmed (e.g. "looks good", "approved", "go ahead").
+**Wait for the user to review and approve the draft.** The plan file already exists from Step 4 — the user can review it in the conversation, open it in their editor, or edit it directly. Do not proceed to Step 6 until the user has explicitly confirmed (e.g. "looks good", "approved", "go ahead").
 
 The user reviews the draft and gives feedback. You support:
-- Approval → proceed to Step 6
-- Rejection of specific nodes/edges → revise and return to Step 4
+- Approval → update the plan file's front-matter `status` from `draft` to `approved`, then proceed to Step 6
+- Rejection of specific nodes/edges → revise the plan file in place and present the changes in the conversation
+- User edits the plan file directly → read the updated file, acknowledge the changes, and continue the review
 - Deeper exploration of a sub-topic → return to Step 2 with refined scope
 - Renames, definition edits, or relation restructuring
 - Take notes of what the user requests to avoid repeating a mistake
 
-**Store user decisions:** Use the **semlocal** skill (`semlocal_store`) to persist significant user decisions and preferences (e.g. "user chose SULO over BFO", "user said skip cancer types", "user prefers crf prefix"). Include metadata: `ontology`, `step` ("user_feedback"), `date`. This ensures future sessions remember the user's choices without re-asking.
+**Store user decisions:** Use the **semlocal** skill (`semlocal_store`) with `--collection <project_dir>` to persist significant user decisions and preferences (e.g. "user chose SULO over BFO", "user said skip cancer types", "user prefers crf prefix"). Include metadata: `ontology`, `step` ("user_feedback"), `date`. This ensures future sessions remember the user's choices without re-asking.
 
-Track revision history so changes between iterations are explicit.
+Track revision history so changes between iterations are explicit. When revising, always update the plan file in place so the file is the single source of truth — do not leave it stale while only presenting changes in the conversation.
+
+**On approval:** Update the plan file's front-matter `status` to `approved`. Confirm to the user that the plan is finalized and the file path. Only **then** proceed to Step 6 (Formalization).
 
 ### Step 6 — Formalization
 
@@ -121,7 +155,7 @@ Convert the approved draft into formal ontology
 - **Add `owl:imports`** for the upper ontology chosen in Step 1 (if any—BFO or SULO) and for any other reused external ontologies. **Use the canonical IRI for the upper ontology**, not a local path: **BFO** → `http://purl.obolibrary.org/obo/bfo.owl`, **SULO** → `https://w3id.org/sulo/`. When the user chose an upper ontology, ensure the serialized OWL file actually contains an `owl:Ontology` block with `owl:imports` (some pipelines do not write imports from the in-memory model—add the block explicitly if needed). The user does not add BFO or SULO to the ontology files; you do.
 - Record provenance: requester, data sources, iteration date
 
-**After formalization:** Use the **semlocal** skill (`semlocal_store`) to store a provenance summary of what was added: classes, properties, source documents, upper ontology, and date. Include metadata: `ontology`, `step` ("formalization"), `date`, `source`. This creates a durable record so future sessions can recall what was formalized and from which sources.
+**After formalization:** Use the **semlocal** skill (`semlocal_store`) with `--collection <project_dir>` to store a provenance summary of what was added: classes, properties, source documents, upper ontology, and date. Include metadata: `ontology`, `step` ("formalization"), `date`, `source`. This creates a durable record so future sessions can recall what was formalized and from which sources.
 
 ### Step 7 — Automated Review
 
@@ -212,6 +246,7 @@ When working in Cursor or Claude Code, you use or request:
 
 **Long-term memory (semlocal)**
 - Use the **semlocal** skill for all store/find operations
+- **Always pass `--collection <project_dir>`** (the project directory name, e.g. `wine`, `agentic-ai`) so each project's knowledge is isolated in its own collection
 - `semlocal_find`: search for prior knowledge before re-extracting from sources
 - `semlocal_store`: persist extracted knowledge, organized summaries, user decisions, and provenance after each workflow step
 
