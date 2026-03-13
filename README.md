@@ -17,7 +17,7 @@ flowchart TB
     Agent --> Contrib["Contribution skills<br/><small>analyze · clone · review-issue · PR</small>"]
     Agent --> Memory["semlocal<br/><small>long-term memory</small>"]
 
-    Editing -->|MCP| MCP["OWL-MCP Server<br/><small>owl-mcp (Node.js)</small>"]
+    Editing -->|MCP| MCP["OWL-MCP Server<br/>"]
     ODK -->|Docker| Docker["ODK Docker Container<br/><small>ROBOT · owltools · jena · …</small>"]
     Contrib -->|CLI| GH["GitHub"]
     Memory --> Idx[".semlocal/ vector index"]
@@ -82,10 +82,4 @@ ontology-builder/
 ├── upper-level/        # BFO and SULO (reference only)
 └── skills/             # Agent skills
 ```
-
-## Optional: long-term memory
-
-The agent can store and recall knowledge (e.g. competency questions, scope) using [semlocal](https://github.com/Minitour/semlocal). Install with `npm install -g semlocal`; the index is stored in `.semlocal/` in the project root by default.’s## References
-
-- [INIT.md](INIT.md) — Agent workflow (for the agent).
 
