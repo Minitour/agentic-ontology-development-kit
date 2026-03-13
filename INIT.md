@@ -25,7 +25,7 @@ Follow these steps when extending or creating an ontology. Align your suggestion
 
 Help clarify the change the user wants. Analyze and structure it.
 
-**First:** Use the **qdrant-memory** skill to search for prior scope, CQs, user preferences, or decisions from earlier sessions on this ontology (e.g. query: "scope for <ontology name>", "user preferences for <domain>"). Use any relevant results to inform the scope discussion.
+**First:** Use the **semlocal** skill to search for prior scope, CQs, user preferences, or decisions from earlier sessions on this ontology (e.g. query: "scope for <ontology name>", "user preferences for <domain>"). Use any relevant results to inform the scope discussion.
 
 **Possible cases:**
 - Starting a new ontology (domain, purpose, namespace, upper ontology alignment)
@@ -49,7 +49,7 @@ Gather domain knowledge from the user’s data sources (PDFs, Word, Excel/CSV, U
 - **Codebases or many files:** Use an **explore** subagent with thoroughness appropriate to the task (e.g. "quick" for a narrow search, "medium" or "very thorough" for broad exploration). Specify what to find (e.g. ontology terms, API patterns) and that the subagent should return a concise summary of findings.
 - Provide the subagent with **scope and CQs** from Step 1 and the **source path or URL** so it can focus extraction. Specify in the prompt that the subagent must return its summary to you (the parent); do not assume the user sees subagent output unless you relay it.
 
-**Before reading a new source:** Use the **qdrant-memory** skill (`qdrant_find`) to search for previously extracted knowledge relevant to this scope (e.g. "concepts from ESMO fatigue guideline", "cancer treatment contributing factors"). If Qdrant already has relevant summaries from a prior session, use them instead of re-extracting from the same source (or delegate to a subagent only for new sources).
+**Before reading a new source:** Use the **semlocal** skill (`semlocal_find`) to search for previously extracted knowledge relevant to this scope (e.g. "concepts from ESMO fatigue guideline", "cancer treatment contributing factors"). If the local index already has relevant summaries from a prior session, use them instead of re-extracting from the same source (or delegate to a subagent only for new sources).
 
 **Per source, you (or the subagent you delegate to):**
 - Use the scope from Step 1
@@ -57,7 +57,7 @@ Gather domain knowledge from the user’s data sources (PDFs, Word, Excel/CSV, U
 - Quote or cite excerpts that justify each finding
 - Note confidence where the source is ambiguous
 
-**After extracting from each source:** Use the **qdrant-memory** skill (`qdrant_store`) to store a structured summary of the extracted knowledge. Include metadata: `source` (file name or URL), `ontology` (ontology name or IRI), `step` ("knowledge_exploration"), `date`, and `confidence` where relevant.
+**After extracting from each source:** Use the **semlocal** skill (`semlocal_store`) to store a structured summary of the extracted knowledge. Include metadata: `source` (file name or URL), `ontology` (ontology name or IRI), `step` ("knowledge_exploration"), `date`, and `confidence` where relevant.
 
 If no sources are provided, use web search with the scope as the query.
 
@@ -76,7 +76,7 @@ Synthesize findings and map them to existing terminology. Do not propose ontolog
 2. Terms to define as new classes, properties, or individuals
 3. Open questions for the user to clarify
 
-**After organizing:** Use the **qdrant-memory** skill (`qdrant_store`) to store the knowledge summary (reuse terms, new terms, gaps, candidate axiom patterns). Include metadata: `ontology`, `step` ("knowledge_organization"), `date`.
+**After organizing:** Use the **semlocal** skill (`semlocal_store`) to store the knowledge summary (reuse terms, new terms, gaps, candidate axiom patterns). Include metadata: `ontology`, `step` ("knowledge_organization"), `date`.
 
 ### Step 4 — Draft Change Proposal
 Produce an informal, structured graph for the user's review; present it in the conversation (e.g. scope, CQs, class/property diagram in Mermaid or structured text). Do not create or write PROPOSAL.md under `projects/<project_dir>/plans` until the user has explicitly approved the draft (Step 5).
@@ -104,7 +104,7 @@ The user reviews the draft and gives feedback. You support:
 - Renames, definition edits, or relation restructuring
 - Take notes of what the user requests to avoid repeating a mistake
 
-**Store user decisions:** Use the **qdrant-memory** skill (`qdrant_store`) to persist significant user decisions and preferences (e.g. "user chose SULO over BFO", "user said skip cancer types", "user prefers crf prefix"). Include metadata: `ontology`, `step` ("user_feedback"), `date`. This ensures future sessions remember the user's choices without re-asking.
+**Store user decisions:** Use the **semlocal** skill (`semlocal_store`) to persist significant user decisions and preferences (e.g. "user chose SULO over BFO", "user said skip cancer types", "user prefers crf prefix"). Include metadata: `ontology`, `step` ("user_feedback"), `date`. This ensures future sessions remember the user's choices without re-asking.
 
 Track revision history so changes between iterations are explicit.
 
@@ -121,7 +121,7 @@ Convert the approved draft into formal ontology
 - **Add `owl:imports`** for the upper ontology chosen in Step 1 (if any—BFO or SULO) and for any other reused external ontologies. **Use the canonical IRI for the upper ontology**, not a local path: **BFO** → `http://purl.obolibrary.org/obo/bfo.owl`, **SULO** → `https://w3id.org/sulo/`. When the user chose an upper ontology, ensure the serialized OWL file actually contains an `owl:Ontology` block with `owl:imports` (some pipelines do not write imports from the in-memory model—add the block explicitly if needed). The user does not add BFO or SULO to the ontology files; you do.
 - Record provenance: requester, data sources, iteration date
 
-**After formalization:** Use the **qdrant-memory** skill (`qdrant_store`) to store a provenance summary of what was added: classes, properties, source documents, upper ontology, and date. Include metadata: `ontology`, `step` ("formalization"), `date`, `source`. This creates a durable record so future sessions can recall what was formalized and from which sources.
+**After formalization:** Use the **semlocal** skill (`semlocal_store`) to store a provenance summary of what was added: classes, properties, source documents, upper ontology, and date. Include metadata: `ontology`, `step` ("formalization"), `date`, `source`. This creates a durable record so future sessions can recall what was formalized and from which sources.
 
 ### Step 7 — Automated Review
 
@@ -210,10 +210,10 @@ When working in Cursor or Claude Code, you use or request:
 - Running SPARQL SELECT/ASK
 - Checking required annotations and orphan classes
 
-**Long-term memory (Qdrant)**
-- Use the **qdrant-memory** skill for all store/find operations
-- `qdrant_find`: search for prior knowledge before re-extracting from sources
-- `qdrant_store`: persist extracted knowledge, organized summaries, user decisions, and provenance after each workflow step
+**Long-term memory (semlocal)**
+- Use the **semlocal** skill for all store/find operations
+- `semlocal_find`: search for prior knowledge before re-extracting from sources
+- `semlocal_store`: persist extracted knowledge, organized summaries, user decisions, and provenance after each workflow step
 
 **State and provenance**
 - Reading ontology metadata (IRI, version, imports)

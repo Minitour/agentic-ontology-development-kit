@@ -3,6 +3,13 @@ providers:
   - claude-code
 options:
   toolExposure: on-demand
+  requiresCommands:
+    - cli: docker
+      description: Required to run ODK containerised tools
+    - cli: node
+      description: Required to run capa and ODK scripts
+    - cli: semlocal
+      description: Required for local semantic memory (npm install -g semlocal)
 skills:
   - id: capabilities-manager
     type: github
@@ -18,25 +25,25 @@ skills:
       path: ./skills/ontology-editor
       description: OWL-MCP tools for ontology editing (axioms, prefixes, config)
       requires:
-        - add_axiom
-        - add_axioms
-        - remove_axiom
-        - find_axioms
-        - get_all_axioms
-        - add_prefix
-        - ontology_metadata
-        - get_labels_for_iri
-        - add_axiom_by_name
-        - remove_axiom_by_name
-        - find_axioms_by_name
-        - add_prefix_by_name
-        - get_labels_for_iri_by_name
-        - list_configured_ontologies
-        - get_ontology_config
-        - configure_ontology
-        - remove_ontology_config
-        - register_ontology_in_config
-        - load_and_register_ontology
+        - '@owl.add_axiom'
+        - '@owl.add_axioms'
+        - '@owl.remove_axiom'
+        - '@owl.find_axioms'
+        - '@owl.get_all_axioms'
+        - '@owl.add_prefix'
+        - '@owl.ontology_metadata'
+        - '@owl.get_labels_for_iri'
+        - '@owl.add_axiom_by_name'
+        - '@owl.remove_axiom_by_name'
+        - '@owl.find_axioms_by_name'
+        - '@owl.add_prefix_by_name'
+        - '@owl.get_labels_for_iri_by_name'
+        - '@owl.list_configured_ontologies'
+        - '@owl.get_ontology_config'
+        - '@owl.configure_ontology'
+        - '@owl.remove_ontology_config'
+        - '@owl.register_ontology_in_config'
+        - '@owl.load_and_register_ontology'
   - id: odk-run
     type: local
     def:
@@ -120,16 +127,14 @@ skills:
         update_repo)
       requires:
         - odk_make
-  - id: qdrant-memory
-    type: local
+  - id: semlocal
+    type: remote
     def:
-      path: ./skills/qdrant-memory
+      url: https://raw.githubusercontent.com/Minitour/semlocal/refs/heads/main/skills/semlocal/SKILL.md
       description: >-
-        Store and retrieve knowledge in Qdrant as long-term memory (from data
-        sources)
-      requires:
-        - qdrant_store
-        - qdrant_find
+        Store, search, and delete text using local semantic search (semlocal CLI).
+        Use for long-term memory, knowledge extraction, and recall across sessions.
+      requires: []
   - id: analyze-project
     type: local
     def:
@@ -191,7 +196,7 @@ agents:
         clones. Follow the target repo's CONTRIBUTING and PR checklist.
 servers:
   # Minitour/owl-mcp (Rust): https://github.com/Minitour/owl-mcp
-  - id: owl-mcp
+  - id: owl
     type: mcp
     description: OWL ontology editing via MCP (find/add/remove axioms, OWL functional syntax)
     def:
@@ -199,16 +204,6 @@ servers:
       args:
         - -y
         - owl-mcp@1.0.5
-  - id: qdrant
-    type: mcp
-    description: Qdrant vector store for long-term memory (store and retrieve knowledge)
-    def:
-      cmd: uvx
-      args:
-        - mcp-server-qdrant
-      env:
-        COLLECTION_NAME: main
-        EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
 tools:
   - id: capa_install
     type: command
@@ -228,133 +223,119 @@ tools:
             type: string
             description: Search query for finding skills
             required: true
-  - id: qdrant_store
-    type: mcp
-    description: >-
-      Store information in Qdrant for long-term memory (knowledge extracted from
-      data sources)
-    def:
-      server: '@qdrant'
-      tool: qdrant-store
-  - id: qdrant_find
-    type: mcp
-    description: Retrieve relevant information from Qdrant by semantic search
-    def:
-      server: '@qdrant'
-      tool: qdrant-find
   - id: add_axiom
     type: mcp
     description: Add one axiom to an OWL file (functional syntax)
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: add_axiom
   - id: add_axioms
     type: mcp
     description: Add multiple axioms to an OWL file
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: add_axioms
   - id: remove_axiom
     type: mcp
     description: Remove one axiom from an OWL file
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: remove_axiom
   - id: find_axioms
     type: mcp
     description: Find axioms matching a pattern in an OWL file
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: find_axioms
   - id: get_all_axioms
     type: mcp
     description: Get all axioms from an OWL file
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: get_all_axioms
   - id: add_prefix
     type: mcp
     description: Add a prefix mapping to an OWL file
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: add_prefix
   - id: ontology_metadata
     type: mcp
     description: Get ontology metadata/annotations
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: ontology_metadata
   - id: get_labels_for_iri
     type: mcp
     description: Get labels for an IRI in an OWL file
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: get_labels_for_iri
   - id: add_axiom_by_name
     type: mcp
     description: Add axiom to a configured ontology by name
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: add_axiom_by_name
   - id: remove_axiom_by_name
     type: mcp
     description: Remove axiom from a configured ontology by name
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: remove_axiom_by_name
   - id: find_axioms_by_name
     type: mcp
     description: Find axioms in a configured ontology by name
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: find_axioms_by_name
   - id: add_prefix_by_name
     type: mcp
     description: Add prefix to a configured ontology by name
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: add_prefix_by_name
   - id: get_labels_for_iri_by_name
     type: mcp
     description: Get labels for an IRI in a configured ontology by name
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: get_labels_for_iri_by_name
   - id: list_configured_ontologies
     type: mcp
     description: List all configured ontologies
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: list_configured_ontologies
   - id: get_ontology_config
     type: mcp
     description: Get configuration for one ontology by name
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: get_ontology_config
   - id: configure_ontology
     type: mcp
     description: Add or update an ontology in config
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: configure_ontology
   - id: remove_ontology_config
     type: mcp
     description: Remove an ontology from config
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: remove_ontology_config
   - id: register_ontology_in_config
     type: mcp
     description: Register an already-loaded ontology in config
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: register_ontology_in_config
   - id: load_and_register_ontology
     type: mcp
     description: Load an OWL file and register it in config (create if missing)
     def:
-      server: '@owl-mcp'
+      server: '@owl'
       tool: load_and_register_ontology
   - id: odk_run
     type: command

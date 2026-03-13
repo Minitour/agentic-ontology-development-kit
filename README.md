@@ -2,6 +2,38 @@
 
 Build or edit ontologies with AI assistance in Cursor or Claude Code. You install the required tools, put your ontology files in the right place, and tell the agent what you want. The agent handles scope, proposals, formalization, upper-ontology alignment (BFO or SULO), and checks.
 
+## Architecture
+
+```mermaid
+flowchart TB
+    User(("User"))
+
+    User <-->|natural language| Agent["AI Agent<br/>(Cursor / Claude Code)"]
+
+    Agent -.-|configured by| Config["INIT.md &plus; capabilities.yaml<br/><i>workflow rules &amp; skill registry (capa)</i>"]
+
+    Agent --> Editing["ontology-editor<br/><small>skill</small>"]
+    Agent --> ODK["ODK tools<br/><small>robot · make · sparql · seed<br/>owltools · riot · runoak · …</small>"]
+    Agent --> Contrib["Contribution skills<br/><small>analyze · clone · review-issue · PR</small>"]
+    Agent --> Memory["semlocal<br/><small>long-term memory</small>"]
+
+    Editing -->|MCP| MCP["OWL-MCP Server<br/><small>owl-mcp (Node.js)</small>"]
+    ODK -->|Docker| Docker["ODK Docker Container<br/><small>ROBOT · owltools · jena · …</small>"]
+    Contrib -->|CLI| GH["GitHub"]
+    Memory --> Idx[".semlocal/ vector index"]
+
+    MCP --> OWL
+    Docker --> OWL
+
+    subgraph Project ["projects/‹name›/"]
+        OWL["ontology/*.owl"]
+        Res["resources/"]
+        Plans["plans/"]
+    end
+
+    Upper["upper-level/<br/><small>BFO · SULO</small>"] -.-|imported by| OWL
+```
+
 ## What you need to do
 
 1. **Install prerequisites** (below).
@@ -18,7 +50,7 @@ Install these before starting:
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Docker**              | Used by the agent to run ROBOT, owltools, and other ontology tools. [Install Docker](https://docs.docker.com/get-docker/).                       |
 | **Node.js** (v18+)      | Used to run project scripts. [Install Node.js](https://nodejs.org/).                                                                             |
-| **Python 3** and **uv** | Used to run the ontology-editor and optional memory service. Install [uv](https://docs.astral.sh/uv/) so that `uvx` is on your PATH.             |
+| **semlocal**            | Local semantic memory. Install with `npm install -g semlocal`. Index stored in `.semlocal/`. [semlocal](https://github.com/Minitour/semlocal) |
 | **capa**                | Syncs the agent’s skills and tools from this project. [CAPA](https://capa.infragate.ai/). After cloning, run `capa install` in the project root. |
 
 
@@ -53,9 +85,7 @@ ontology-builder/
 
 ## Optional: long-term memory
 
-The agent can store and recall knowledge (e.g. competency questions, scope) in a local Qdrant instance. It is preconfigured in this project; you only need to set the path to your project’s `.qdrant` folder if you use a custom setup (e.g. via `capa install -e` and a `.env` file).
-
-## References
+The agent can store and recall knowledge (e.g. competency questions, scope) using [semlocal](https://github.com/Minitour/semlocal). Install with `npm install -g semlocal`; the index is stored in `.semlocal/` in the project root by default.’s## References
 
 - [INIT.md](INIT.md) — Agent workflow (for the agent).
 
