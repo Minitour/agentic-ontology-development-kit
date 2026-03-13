@@ -83,9 +83,3 @@ ontology-builder/
 └── skills/             # Agent skills
 ```
 
-## Optional: long-term memory
-
-The agent can store and recall knowledge (e.g. competency questions, scope) using [semlocal](https://github.com/Minitour/semlocal). Install with `npm install -g semlocal`; the index is stored in `.semlocal/` in the project root by default.’s## References
-
-- [INIT.md](INIT.md) — Agent workflow (for the agent).
-
