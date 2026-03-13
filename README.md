@@ -17,7 +17,7 @@ flowchart TB
     Agent --> Contrib["Contribution skills<br/><small>analyze · clone · review-issue · PR</small>"]
     Agent --> Memory["semlocal<br/><small>long-term memory</small>"]
 
-    Editing -->|MCP| MCP["OWL-MCP Server<br/><small>owl-mcp (Node.js)</small>"]
+    Editing -->|MCP| MCP["OWL-MCP Server<br/>"]
     ODK -->|Docker| Docker["ODK Docker Container<br/><small>ROBOT · owltools · jena · …</small>"]
     Contrib -->|CLI| GH["GitHub"]
     Memory --> Idx[".semlocal/ vector index"]
