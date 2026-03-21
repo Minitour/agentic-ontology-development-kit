@@ -16,10 +16,11 @@ Use this skill to **find and apply established Ontology Design Patterns (ODPs)**
 
 ## How to Use
 
-1. **Scan the catalogue below** to find patterns matching the user's modeling problem (match by intent, CQs, or domain).
-2. **Read the full reference file** for candidate patterns: each pattern has a detailed file at `references/<pattern-name>.md` with full documentation, OWL elements, consequences, related patterns, and the OWL building block URL.
-3. **Present candidates** to the user with rationale for why each pattern fits.
-4. **Apply the pattern** by adapting its classes and properties to the user's domain, referencing the OWL building block as a template.
+1. **Run the modeling checklist** (`references/ModelingChecklist.md`): Before finalizing any draft, check for over-classification, anti-patterns, and structural issues. This is mandatory during Step 4.
+2. **Scan the catalogue below** to find patterns matching the user's modeling problem (match by intent, CQs, or domain).
+3. **Read the full reference file** for candidate patterns: each pattern has a detailed file at `references/<pattern-name>.md` with full documentation, OWL elements, consequences, related patterns, and the OWL building block URL.
+4. **Present candidates** to the user with rationale for why each pattern fits.
+5. **Apply the pattern** by adapting its classes and properties to the user's domain, referencing the OWL building block as a template.
 
 ## Source
 
@@ -167,6 +168,7 @@ When uncertain which pattern to use, consider these common modeling problems:
 | Multiple participants in one event | **Co-participation** |
 | Ordering, before/after | **Sequence** |
 | Events with who/what/when/where | **EventCore** |
+| Events composed of sub-events | **EventCore** (subEventOf) |
 | Plans and their execution | **BasicPlan**, **BasicPlanExecution** |
 | Task assignment and tracking | **TaskExecution** |
 | Workflow branching/ordering | **Controlflow** |
