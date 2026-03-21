@@ -19,6 +19,11 @@ skills:
       requires:
         - capa_install
         - find_skills
+  - id: odp-pattern-selector
+    type: local
+    def:
+      path: ./skills/odp-pattern-selector
+      description: Select a pattern from the ODP pattern library
   - id: ontology-editor
     type: local
     def:
@@ -33,17 +38,8 @@ skills:
         - '@owl.add_prefix'
         - '@owl.ontology_metadata'
         - '@owl.get_labels_for_iri'
-        - '@owl.add_axiom_by_name'
-        - '@owl.remove_axiom_by_name'
-        - '@owl.find_axioms_by_name'
-        - '@owl.add_prefix_by_name'
-        - '@owl.get_labels_for_iri_by_name'
-        - '@owl.list_configured_ontologies'
-        - '@owl.get_ontology_config'
-        - '@owl.configure_ontology'
-        - '@owl.remove_ontology_config'
-        - '@owl.register_ontology_in_config'
-        - '@owl.load_and_register_ontology'
+        - '@owl.set_ontology_iri'
+        - '@owl.test_pitfalls'
   - id: odk-run
     type: local
     def:
@@ -203,7 +199,8 @@ servers:
       cmd: npx
       args:
         - -y
-        - owl-mcp@1.0.5
+        - owl-mcp@1.0.8
+        - serve
 tools:
   - id: capa_install
     type: command
@@ -271,72 +268,18 @@ tools:
     def:
       server: '@owl'
       tool: get_labels_for_iri
-  - id: add_axiom_by_name
+  - id: set_ontology_iri
     type: mcp
-    description: Add axiom to a configured ontology by name
+    description: Set or update the ontology IRI and version IRI
     def:
       server: '@owl'
-      tool: add_axiom_by_name
-  - id: remove_axiom_by_name
+      tool: set_ontology_iri
+  - id: test_pitfalls
     type: mcp
-    description: Remove axiom from a configured ontology by name
+    description: Scan for common modeling pitfalls in an OWL file
     def:
       server: '@owl'
-      tool: remove_axiom_by_name
-  - id: find_axioms_by_name
-    type: mcp
-    description: Find axioms in a configured ontology by name
-    def:
-      server: '@owl'
-      tool: find_axioms_by_name
-  - id: add_prefix_by_name
-    type: mcp
-    description: Add prefix to a configured ontology by name
-    def:
-      server: '@owl'
-      tool: add_prefix_by_name
-  - id: get_labels_for_iri_by_name
-    type: mcp
-    description: Get labels for an IRI in a configured ontology by name
-    def:
-      server: '@owl'
-      tool: get_labels_for_iri_by_name
-  - id: list_configured_ontologies
-    type: mcp
-    description: List all configured ontologies
-    def:
-      server: '@owl'
-      tool: list_configured_ontologies
-  - id: get_ontology_config
-    type: mcp
-    description: Get configuration for one ontology by name
-    def:
-      server: '@owl'
-      tool: get_ontology_config
-  - id: configure_ontology
-    type: mcp
-    description: Add or update an ontology in config
-    def:
-      server: '@owl'
-      tool: configure_ontology
-  - id: remove_ontology_config
-    type: mcp
-    description: Remove an ontology from config
-    def:
-      server: '@owl'
-      tool: remove_ontology_config
-  - id: register_ontology_in_config
-    type: mcp
-    description: Register an already-loaded ontology in config
-    def:
-      server: '@owl'
-      tool: register_ontology_in_config
-  - id: load_and_register_ontology
-    type: mcp
-    description: Load an OWL file and register it in config (create if missing)
-    def:
-      server: '@owl'
-      tool: load_and_register_ontology
+      tool: test_pitfalls
   - id: odk_run
     type: command
     group: odk
