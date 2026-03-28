@@ -38,4 +38,4 @@ Use this skill when the user needs to **validate files in OBO format** (e.g. `.o
 
 This skill requires: **odk_fastobo_validator**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-fastobo-validator"])` to activate the tool, then use `call_tool(name: "odk_fastobo_validator", data: {"args": "..."})` to invoke it.

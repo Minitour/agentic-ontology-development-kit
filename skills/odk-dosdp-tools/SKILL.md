@@ -40,4 +40,4 @@ Use this skill when the user needs **dosdp-tools** to **generate ontology conten
 
 This skill requires: **odk_dosdp_tools**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-dosdp-tools"])` to activate the tool, then use `call_tool(name: "odk_dosdp_tools", data: {"args": "..."})` to invoke it.

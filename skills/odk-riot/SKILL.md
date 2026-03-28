@@ -27,7 +27,7 @@ Use this skill when the user needs **riot** (Apache Jena RDF I/O) to **convert**
 ## When Not to Use This Skill
 
 - **ROBOT convert** (OWL ↔ OBO, OWL functional) → use **odk-robot** and **odk_robot** with `convert`.
-- **SPARQL queries** → use **odk-sparql** and **odk_sparql**.
+- **SPARQL queries** → use **odk-robot** and **odk_robot** with `query`.
 
 ## Tool and Arguments
 
@@ -39,4 +39,4 @@ Use this skill when the user needs **riot** (Apache Jena RDF I/O) to **convert**
 
 This skill requires: **odk_riot**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-riot"])` to activate the tool, then use `call_tool(name: "odk_riot", data: {"args": "..."})` to invoke it.

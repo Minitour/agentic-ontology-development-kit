@@ -5,7 +5,7 @@ description: Run ROBOT for ontology QC, merge, reason, convert, template, or que
 
 # ODK Robot Skill
 
-Use this skill when the user needs to **run ROBOT** for: **verify** (rule-based QC), **validate** OWL 2 profile, **merge** ontologies, **reason** (classification/inference), **convert** format (OWL ↔ OBO etc.), **template** (generate terms from CSV + template), or **query** (SPARQL or DL). **Use the odk_robot tool** (activate the skill with setup_tools, then call_tool)—do not run `robot` via shell or **odk_run**. This is the only way to run ROBOT in this project.
+Use this skill when the user needs to **run ROBOT** for: **verify** (rule-based QC), **validate** OWL 2 profile, **merge** ontologies, **reason** (classification/inference), **convert** format (OWL ↔ OBO etc.), **template** (generate terms from CSV + template), or **query** (SPARQL or DL). **Use the odk_robot tool** (activate with `setup_tools(skills: ["odk-robot"])`, then `call_tool(name: "odk_robot", data: {...})`)—do not run `robot` via shell or **odk_run**. This is the only way to run ROBOT in this project.
 
 **Paths**: The ODK Docker wrapper mounts a project directory at `/work`. Paths in `robot_args` are **relative to that mounted root**.
 
@@ -173,4 +173,4 @@ robot extract --input edit.owl --term-file terms.txt --output subset.owl
 
 This skill requires: **odk_robot**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-robot"])` to activate the tool, then use `call_tool(name: "odk_robot", data: {"robot_args": "..."})` to invoke it.

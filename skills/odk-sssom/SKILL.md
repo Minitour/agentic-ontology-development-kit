@@ -39,4 +39,4 @@ Use this skill when the user needs to work with **SSSOM mapping files** (e.g. TS
 
 This skill requires: **odk_sssom**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-sssom"])` to activate the tool, then use `call_tool(name: "odk_sssom", data: {"args": "..."})` to invoke it.

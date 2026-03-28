@@ -1,79 +1,70 @@
 ---
 name: ontology-editor
-description: Read, edit, and manage OWL ontologies with OWL-MCP (axioms, prefixes, metadata). Use whenever the user wants to add or remove axioms, search axioms, add prefixes, inspect ontology metadata, or formalize an ontology in OWL—e.g. "add this axiom", "find axioms for class X", "add prefix". Align with Ontology Builder workflow (formalization step); use absolute paths for OWL files. Never edit OWL files by hand.
+description: Read, edit, and manage OWL ontologies with OWL-MCP (axioms, prefixes, metadata, pitfall scanning). Use whenever the user wants to add or remove axioms, search axioms, add prefixes, set the ontology IRI, inspect ontology metadata, scan for pitfalls, or formalize an ontology in OWL—e.g. "add this axiom", "find axioms for class X", "add prefix", "check for pitfalls". Align with Ontology Builder workflow (formalization step); use absolute paths for OWL files. Never edit OWL files by hand.
 ---
 
 # Ontology Editor Skill
 
-Use this skill when you need to **inspect or modify OWL ontology files** in this project. **Never edit OWL files directly**—use these tools for all axiom, prefix, and metadata changes. The tools are provided by the OWL-MCP server and operate on OWL files by **file path** or by **configured ontology name**.
+Use this skill when you need to **inspect or modify OWL ontology files** in this project. **Never edit OWL files directly**—use these tools for all axiom, prefix, and metadata changes. The tools are provided by the OWL-MCP server and operate on OWL files by **absolute file path**.
 
 ## When to Use
 
 - **Step 6 (Formalization)** in the Ontology Builder workflow: add axioms, prefixes, and annotations to an OWL file after the user has approved the draft.
 - **Ontology navigation**: find axioms, get all axioms, or read ontology metadata for an existing file.
-- **Ontology editing**: add/remove axioms in OWL functional syntax; add prefix mappings.
-- **Setup**: load or register an ontology in the config so it can be used by name; list or inspect configured ontologies.
+- **Ontology editing**: add/remove axioms in OWL functional syntax; add prefix mappings; set the ontology IRI.
+- **Quality checking**: scan for common modeling pitfalls (OOPS!-style checks).
 
 Align with the project's INSTRUCTIONS.md: work top-down, get user approval before large edits, and keep changes in formal OWL (functional syntax recommended).
 
 ## How the Server Works
 
-- **File path**: Every tool that takes `owl_file_path` expects an **absolute path** to the OWL file (e.g. `C:\Users\...\ontology.owl` or `/path/to/ontology.owl`).
-- **By name**: After an ontology is registered (e.g. via `load_and_register_ontology` or `register_ontology_in_config`), you can use the `*_by_name` tools with `ontology_name` instead of a path.
-- **Syntax**: Axioms are strings in **OWL functional syntax** (e.g. `SubClassOf(:Dog :Animal)`, `Declaration(Class(:Cat))`). The server syncs in-memory state with disk; Protege will see changes if it has the same file open.
+- **File path**: Every tool takes `owl_file_path` — an **absolute path** to the OWL file (e.g. `C:\Users\...\ontology.owl` or `/path/to/ontology.owl`). The server loads the file on first access and syncs in-memory state with disk on writes.
+- **Syntax**: Axioms are strings in **OWL functional syntax** (e.g. `SubClassOf(:Dog :Animal)`, `Declaration(Class(:Cat))`).
 
 ## Tools Overview
 
-### Axioms (by file path)
+### Axioms
 
 | Tool | Purpose |
 |------|--------|
-| **add_axiom** | Add one axiom (e.g. `SubClassOf(:A :B)`). |
-| **add_axioms** | Add multiple axioms in one call. |
-| **remove_axiom** | Remove one axiom (exact string match). |
-| **find_axioms** | Search axioms by pattern (substring or regex); optional labels, limit. |
-| **get_all_axioms** | Return all axioms in the ontology; optional labels, limit. |
+| **add_axiom** | Add one axiom (e.g. `SubClassOf(:A :B)`). Params: `owl_file_path`, `axiom_str`. |
+| **add_axioms** | Add multiple axioms in one call. Params: `owl_file_path`, `axiom_strs` (array). |
+| **remove_axiom** | Remove one axiom (exact match). Params: `owl_file_path`, `axiom_str`. |
+| **find_axioms** | Search axioms by regex pattern; optional labels, limit, custom annotation property. Params: `owl_file_path`, `pattern`, `limit`, `include_labels`, `annotation_property` (nullable). |
+| **get_all_axioms** | Return all axioms (up to limit); optional labels, custom annotation property. Params: `owl_file_path`, `limit`, `include_labels`, `annotation_property` (nullable). |
 
-### Prefixes and metadata (by file path)
-
-| Tool | Purpose |
-|------|--------|
-| **add_prefix** | Add a prefix mapping (e.g. `ex` → `http://example.org/`). |
-| **ontology_metadata** | Get ontology metadata/annotations. |
-| **get_labels_for_iri** | Get label(s) for a given IRI. |
-
-### Axioms and prefixes by ontology name
-
-Use these when the ontology is already in the config (by name):
-
-- **add_axiom_by_name**, **remove_axiom_by_name**, **find_axioms_by_name**, **add_prefix_by_name**, **get_labels_for_iri_by_name** — same as above but take `ontology_name` instead of `owl_file_path`.
-
-### Configuration
+### Prefixes, Metadata, and IRI Management
 
 | Tool | Purpose |
 |------|--------|
-| **list_configured_ontologies** | List all configured ontologies (name, path, readonly, etc.). |
-| **get_ontology_config** | Get config for one ontology by name. |
-| **configure_ontology** | Add or update an ontology in config (name, path, readonly, serialization, etc.). |
-| **remove_ontology_config** | Remove an ontology from config. |
-| **register_ontology_in_config** | Register an already-loaded ontology (by path) in config. |
-| **load_and_register_ontology** | Load an ontology (create if missing) and register it in one step. |
+| **add_prefix** | Add a prefix mapping (e.g. prefix `ex:` → `http://example.org/`). Params: `owl_file_path`, `prefix`, `uri`. |
+| **ontology_metadata** | Get ontology-level annotation axioms (metadata header). Params: `owl_file_path`. |
+| **get_labels_for_iri** | Get label(s) for a given IRI or CURIE; optional custom annotation property. Params: `owl_file_path`, `iri`, `annotation_property` (nullable). |
+| **set_ontology_iri** | Set or update the ontology IRI and optional version IRI. Pass `iri: null` to clear. Params: `owl_file_path`, `iri` (nullable), `version_iri` (nullable). |
+
+### Quality Checks
+
+| Tool | Purpose |
+|------|--------|
+| **test_pitfalls** | Scan for common modeling pitfalls (31 OOPS!-inspired checks). Returns a JSON report listing detected issues, severity, and affected elements. Optionally filter by pitfall IDs. Params: `owl_file_path`, `pitfalls` (nullable, comma-separated IDs e.g. `"P04,P08,P11"`). |
+
+**Available pitfall checks:** P02 (synonym classes), P03 ("is" relationship), P04 (unconnected elements), P05 (wrong inverses), P06 (class hierarchy cycles), P07 (merged concepts), P08 (missing annotations), P10 (missing disjointness), P11 (missing domain/range), P12 (undeclared equivalent properties), P13 (missing inverses), P19 (multiple domains/ranges), P20 (misused annotations), P21 (miscellaneous class), P22 (inconsistent naming), P24 (recursive definitions), P25 (self-inverse), P26 (inverse of symmetric), P27 (wrong equivalent properties), P28 (wrong symmetric), P29 (wrong transitive), P30 (undeclared equivalent classes), P31 (wrong equivalent classes), P32 (duplicate labels), P33 (single-property chain), P34 (untyped class), P35 (untyped property), P36 (URI file extension), P38 (no ontology declaration), P39 (ambiguous namespace), P41 (no license).
 
 ## Usage Tips
 
-1. **First time on a file**: Call `load_and_register_ontology(owl_file_path, ...)` to open and register it, or pass the absolute path into `add_axiom` / `find_axioms` / etc. directly—absolute paths ensure the MCP server can resolve files regardless of working directory.
-2. **Finding content**: Call `find_axioms(owl_file_path, pattern)` with a substring or regex; set `include_labels: true` for human-readable labels (OBO-style `#` comments).
+1. **Always use absolute paths**: Pass the full absolute path in `owl_file_path` to ensure the MCP server can resolve the file regardless of working directory.
+2. **Finding content**: Call `find_axioms` with a regex pattern; set `include_labels: true` for human-readable labels appended as `##` comments. Use `annotation_property` to override the default `rdfs:label` (e.g. for `skos:prefLabel`).
 3. **Adding axioms**: Use OWL functional syntax. Add one axiom per call with `add_axiom`, or batch with `add_axioms`. Ensure required prefixes exist (e.g. `owl`, `rdf`, `rdfs`, `xsd`); add custom ones with `add_prefix`.
-4. **Project workflow**: After the user approves a draft (Step 5), use these tools to implement the change in the OWL file (Step 6), then suggest automated review (Step 7) as in INIT.md.
-5. **Imports**: When adding an external ontology (e.g. BFO), add the import via the tool. If the serialized OWL file does not show an `owl:Ontology` block with `owl:imports`, the pipeline may not write imports to disk—add the `owl:Ontology` / `owl:imports` block explicitly in the file so reasoners and tools can resolve the dependency.
+4. **Setting the ontology IRI**: Use `set_ontology_iri` to establish the ontology IRI and version IRI before adding axioms to a new file.
+5. **Project workflow**: After the user approves a draft (Step 5), use these tools to implement the change in the OWL file (Step 6), then run `test_pitfalls` as part of automated review (Step 7).
+6. **Imports**: When adding an external ontology (e.g. BFO), add the import axiom via `add_axiom`. If the serialized OWL file does not show an `owl:Ontology` block with `owl:imports`, add the `owl:Ontology` / `owl:imports` block explicitly so reasoners and tools can resolve the dependency.
 
 ## Tool Requirements
 
-This skill requires the following tools to be available (they are proxied from the `owl-mcp` MCP server):
+This skill requires the following tools (proxied from the `owl-mcp` MCP server):
 
 - add_axiom, add_axioms, remove_axiom, find_axioms, get_all_axioms
 - add_prefix, ontology_metadata, get_labels_for_iri
-- add_axiom_by_name, remove_axiom_by_name, find_axioms_by_name, add_prefix_by_name, get_labels_for_iri_by_name
-- list_configured_ontologies, get_ontology_config, configure_ontology, remove_ontology_config, register_ontology_in_config, load_and_register_ontology
+- set_ontology_iri, test_pitfalls
 
-After learning this skill, call `setup_tools` with this skill's id to activate these tools, then use `call_tool` to invoke them.
+After learning this skill, call `setup_tools(skills: ["ontology-editor"])` to activate these tools, then use `call_tool(name: "<tool_name>", data: {...})` to invoke them.

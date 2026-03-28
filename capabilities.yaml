@@ -1,6 +1,5 @@
 providers:
   - cursor
-  - claude-code
 options:
   toolExposure: on-demand
   requiresCommands:
@@ -24,11 +23,26 @@ skills:
     def:
       path: ./skills/odp-pattern-selector
       description: Select a pattern from the ODP pattern library
+  - id: cq-verification
+    type: local
+    def:
+      path: ./skills/cq-verification
+      description: >-
+        Verify competency questions against an OWL ontology using SPARQL queries
+        with test data. Use during Step 7, or whenever the user asks to test,
+        validate, or verify an ontology against its CQs.
+      requires:
+        - odk_robot
+        - '@owl.add_axiom'
+        - '@owl.add_axioms'
+        - '@owl.add_prefix'
+        - '@owl.set_ontology_iri'
+        - '@owl.find_axioms'
   - id: ontology-editor
     type: local
     def:
       path: ./skills/ontology-editor
-      description: OWL-MCP tools for ontology editing (axioms, prefixes, config)
+      description: OWL-MCP tools for ontology editing (axioms, prefixes, IRI, pitfalls)
       requires:
         - '@owl.add_axiom'
         - '@owl.add_axioms'
@@ -77,13 +91,6 @@ skills:
       description: Convert or validate RDF with riot
       requires:
         - odk_riot
-  - id: odk-sparql
-    type: local
-    def:
-      path: ./skills/odk-sparql
-      description: Run SPARQL queries over ontologies
-      requires:
-        - odk_sparql
   - id: odk-runoak
     type: local
     def:
@@ -173,8 +180,9 @@ agents:
     - type: inline
       id: capa_tool_usage
       content: >-
-        After learning a new skill, call the `setup_tools` tool to activate it,
-        then use `call_tool` to invoke the relevant tool.
+        After learning a new skill, call `setup_tools(skills: ["<skill-id>"])` to
+        activate it, then use `call_tool(name: "<tool>", data: {...})` to invoke
+        the relevant tool.
     - type: inline
       id: ontology_builder_tools
       content: >-
@@ -354,18 +362,6 @@ tools:
           - name: args
             type: string
             description: riot arguments (e.g. --output=ttl edit.owl)
-            required: true
-  - id: odk_sparql
-    type: command
-    group: odk
-    description: Run SPARQL queries against RDF/ontology files
-    def:
-      run:
-        cmd: node scripts/odk-docker-run.js "sparql {args}"
-        args:
-          - name: args
-            type: string
-            description: sparql arguments (e.g. --query query.rq --data edit.owl)
             required: true
   - id: odk_runoak
     type: command

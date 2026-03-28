@@ -23,6 +23,8 @@ These are your instructions when building and iterating on ontologies. You act a
 
 Follow these steps when extending or creating an ontology. Align your suggestions with this workflow.
 
+**Path convention**: Throughout this document, `<project_dir>` refers to the **project name only** (e.g. `conference-management`), not a full path. All paths starting with `projects/` are **relative to the workspace root**. For example, `projects/<project_dir>/queries/` means `projects/conference-management/queries/` at the workspace root — never nested inside the project directory itself.
+
 ### Step 1 — Scope Definition
 
 Help clarify the change the user wants. Analyze and structure it. Search semlocal for prior scope, CQs, or decisions from earlier sessions.
@@ -103,23 +105,37 @@ Close the draft with a **"What I need from you"** list. State clearly that you w
 
 ### Step 6 — Formalization
 
-Convert the approved draft into formal ontology.
+Convert the approved draft into formal ontology using the **ontology-editor** tools. **NEVER write or edit OWL files directly** — if a tool call fails, diagnose the error and retry. Do not fall back to manual file creation under any circumstances; report the error to the user instead.
 
-- Mint IRIs following the ontology's naming convention
+**Procedure:**
+
+1. **Activate tools**: Read the **ontology-editor** skill (`skills/ontology-editor/SKILL.md`), then call `setup_tools(skills: ["ontology-editor"])` to activate the tools.
+2. **Set ontology IRI**: Call `set_ontology_iri` to establish the ontology IRI (and version IRI if applicable).
+3. **Add prefixes**: Call `add_prefix` for each namespace prefix (the ontology's own prefix, `owl`, `rdf`, `rdfs`, `xsd`, and any imported namespaces).
+4. **Add axioms**: Use `add_axioms` to batch declarations, subclass axioms, property axioms, domain/range, cardinality restrictions, disjointness, equivalent classes, and annotation assertions. Group related axioms into logical batches (e.g. all class declarations, then property declarations, then restrictions).
+5. **Verify**: Call `find_axioms` or `get_all_axioms` with `include_labels: true` to spot-check the result.
+
+**Modeling guidance (apply during axiom construction):**
+
+- Mint IRIs following the ontology's naming convention.
 - **When an upper-level ontology is used**: Use only the **existing object and data properties** from that ontology; do not define new ones unless the user explicitly instructs otherwise.
 - Assert subclass axioms, property chains, domain/range, cardinality. Where scope and CQs support it, add defined classes, inverse properties, and value partitions (see **Modeling quality and enrichment**).
-- Add annotation properties (labels, definitions, synonyms, provenance)
+- Add annotation properties (labels, definitions, synonyms, provenance).
 - **Add `owl:imports`** for the upper ontology (if any) using the **canonical IRI** (BFO → `http://purl.obolibrary.org/obo/bfo.owl`, SULO → `https://w3id.org/sulo/`) and for any other reused external ontologies.
 - **Datatype selection:** Choose semantically accurate XSD datatypes. Be aware that `xsd:date` and `xsd:gYear` are not in the OWL 2 DL datatype map — consult the user before substituting if strict DL compliance is required.
-- Record provenance: requester, data sources, iteration date
+- Record provenance: requester, data sources, iteration date.
 
 ### Step 7 — Automated Review
 
-Run automated checks:
-- **Consistency**: OWL reasoner (ELK, HermiT) via **odk_robot** `reason`
-- **Competency questions**: **Execute** SPARQL queries against the ontology for each CQ. Report actual results, not conceptual mappings. A CQ is only verified when a query returns the expected result.
-- **Structural**: Orphaned classes, undefined property domains/ranges, missing required annotations
-- **Duplication**: New terms semantically equivalent to existing terms
+Run automated checks using the actual tools — **never fabricate or assume results**. Every check below must produce real tool output that you report to the user.
+
+**Procedure:**
+
+1. **Pitfall scan**: Call `test_pitfalls` (ontology-editor tool) on the OWL file. Review the JSON report for issues; fix critical/important pitfalls before proceeding.
+2. **Consistency**: Run `odk_robot` with `reason` (e.g. `reason --input <path> --reasoner ELK`) to check for logical inconsistencies. Report the actual tool output.
+3. **Competency question verification (mandatory — every CQ must be verified)**: Delegate this to a **subagent** — launch a Task with the **cq-verification** skill (`skills/cq-verification/SKILL.md`). Provide the subagent with: the skill path, the project directory, the path to the approved proposal (for the CQ list), and the path to the ontology OWL file. The subagent handles the full procedure: create test data, write SPARQL queries for every CQ, merge ontology + test data with `robot merge`, execute every query with `robot query`, and return results. Queries must run against the **merged** file (schema + individuals) — never against test data alone. Every CQ must appear in the results table. If any CQ fails due to an ontology gap, return to Step 6.
+4. **Structural checks**: Use `find_axioms` to check for orphaned classes (classes with no SubClassOf or usage in restrictions), undefined property domains/ranges, and missing required annotations (`rdfs:label`).
+5. **Duplication**: Search for new terms that are semantically equivalent to existing terms in the ontology or imported ontologies.
 
 When a check fails, **report the specific error** and either fix or document the issue. If issues are found, return to Step 6.
 

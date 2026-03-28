@@ -74,4 +74,4 @@ import_group:
 
 This skill requires: **odk_seed**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-seed"])` to activate the tool, then use `call_tool(name: "odk_seed", data: {"config_path": "..."})` to invoke it.

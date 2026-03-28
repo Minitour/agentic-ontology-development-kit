@@ -5,7 +5,7 @@ description: Run standard ODK Make targets in an existing ODK project. Use whene
 
 # ODK Make Skill
 
-Use this skill when the user needs **concrete outcomes** from an **existing ODK project**: **test/QC results**, **release artefacts** (merged ontology, OBO, subsets), **updated import modules**, **updated ODK repo files** (Makefile, templates), or the **ODK version**. The repository must already be an ODK project (e.g. created with **odk_seed** or a clone under `projects/`). **Use the odk_make tool** (activate the skill with setup_tools, then call_tool)—do not run `make` via shell.
+Use this skill when the user needs **concrete outcomes** from an **existing ODK project**: **test/QC results**, **release artefacts** (merged ontology, OBO, subsets), **updated import modules**, **updated ODK repo files** (Makefile, templates), or the **ODK version**. The repository must already be an ODK project (e.g. created with **odk_seed** or a clone under `projects/`). **Use the odk_make tool** (activate with `setup_tools(skills: ["odk-make"])`, then `call_tool(name: "odk_make", data: {...})`)—do not run `make` via shell.
 
 **Project directory and Make path**:
 - **Workspace ontology** (no clone): Omit or leave **`project_dir`** empty. Set **`make_path`** to where the Makefile lives relative to the mounted root (e.g. `ontology`).
@@ -130,4 +130,4 @@ Use this skill when the user needs **concrete outcomes** from an **existing ODK 
 
 This skill requires: **odk_make**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-make"])` to activate the tool, then use `call_tool(name: "odk_make", data: {"target": "...", "make_path": "..."})` to invoke it.

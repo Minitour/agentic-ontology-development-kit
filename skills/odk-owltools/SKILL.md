@@ -42,4 +42,4 @@ Use this skill when the user needs **owltools** to get: **reasoning/classificati
 
 This skill requires: **odk_owltools**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-owltools"])` to activate the tool, then use `call_tool(name: "odk_owltools", data: {"args": "..."})` to invoke it.

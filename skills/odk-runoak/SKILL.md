@@ -1,6 +1,6 @@
 ---
 name: odk-runoak
-description: Search and navigate ontologies with runoak (OAKLIB). Use whenever the user wants to search terms by label/keyword, get ancestors or descendants of a term, or list/browse ontology structure—e.g. "find terms containing X", "ancestors of GO:0008150", "show hierarchy". Output is term list, hierarchy, or search results. For SPARQL over RDF use odk-sparql; for ROBOT query use odk-robot.
+description: Search and navigate ontologies with runoak (OAKLIB). Use whenever the user wants to search terms by label/keyword, get ancestors or descendants of a term, or list/browse ontology structure—e.g. "find terms containing X", "ancestors of GO:0008150", "show hierarchy". Output is term list, hierarchy, or search results. For SPARQL/query use odk-robot.
 ---
 
 # ODK Runoak Skill
@@ -27,7 +27,7 @@ Use this skill when the user needs **runoak** (OAKLIB – Ontology Access Kit) t
 
 ## When Not to Use This Skill
 
-- **SPARQL** over RDF → use **odk-sparql**. **ROBOT query** → use **odk-robot** and **odk_robot** with `query`.
+- **SPARQL** over RDF → use **odk-robot** and **odk_robot** with `query`.
 
 ## Tool and Arguments
 
@@ -39,4 +39,4 @@ Use this skill when the user needs **runoak** (OAKLIB – Ontology Access Kit) t
 
 This skill requires: **odk_runoak**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-runoak"])` to activate the tool, then use `call_tool(name: "odk_runoak", data: {"args": "..."})` to invoke it.

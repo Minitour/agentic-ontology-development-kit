@@ -25,7 +25,7 @@ Use this skill when the user needs to run a command that is **not** covered by a
 - **dosdp-tools** → use **odk-dosdp-tools** and **odk_dosdp_tools**.
 - **fastobo-validator** → use **odk-fastobo-validator** and **odk_fastobo_validator**.
 - **riot** → use **odk-riot** and **odk_riot**.
-- **sparql** → use **odk-sparql** and **odk_sparql**.
+- **sparql** → use **odk-robot** and **odk_robot** with `query`.
 - **runoak** → use **odk-runoak** and **odk_runoak**.
 - **sssom** → use **odk-sssom** and **odk_sssom**.
 - **Standard ODK Make targets** (test, prepare_release, refresh-imports, update_repo, odkversion) → use **odk-make** and **odk_make**.
@@ -49,4 +49,4 @@ Use this skill when the user needs to run a command that is **not** covered by a
 
 This skill requires: **odk_run**
 
-After learning this skill, call `setup_tools` with this skill's id to activate the tool, then use `call_tool` to invoke it.
+After learning this skill, call `setup_tools(skills: ["odk-run"])` to activate the tool, then use `call_tool(name: "odk_run", data: {"command": "..."})` to invoke it.
