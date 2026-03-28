@@ -122,16 +122,31 @@ call_tool(name: "odk_robot", data: {
 
 The merge produces a single file with both TBox and ABox. Paths in `robot_args` are relative to the project directory.
 
-**Step 2 — Run each query:**
+**If merge fails** (e.g. parsing error on OWL functional syntax), convert the ontology to RDF/XML first and merge from that:
 
 ```
 call_tool(name: "odk_robot", data: {
-  "robot_args": "query --input queries/merged.owl --query queries/CQ01.rq queries/results/CQ01.csv",
+  "robot_args": "convert --input ontology/<name>.owl --output queries/ontology-rdfxml.owl --format owl",
   "project_dir": "projects/<project_dir>"
 })
 ```
 
-Read each output CSV to check the results. Run every query.
+Then merge using the converted file. Do **not** work around merge failures by manually copying axioms between files — this defeats schema-aware verification.
+
+**Step 2 — Run queries in batches:**
+
+ROBOT supports multiple `--query` flags in one call. Batch queries to reduce tool calls:
+
+```
+call_tool(name: "odk_robot", data: {
+  "robot_args": "query --input queries/merged.owl --query queries/CQ01.rq queries/results/CQ01.csv --query queries/CQ02.rq queries/results/CQ02.csv --query queries/CQ03.rq queries/results/CQ03.csv",
+  "project_dir": "projects/<project_dir>"
+})
+```
+
+Batch 5–10 queries per call. Create the `queries/results/` directory before running the first batch if it doesn't exist.
+
+Read each output CSV to check the results.
 
 **What results mean:**
 
@@ -156,6 +171,32 @@ Present results as a summary table covering every CQ:
 
 Every CQ must appear in the table. If any CQ fails due to an ontology gap, fix the ontology and re-run.
 
+## Common Pitfalls
+
+### ROBOT fails to parse the ontology or test data file
+
+The ontology-editor tools produce OWL functional syntax. ROBOT usually handles this, but may fail on certain files (encoding issues, large axiom sets, or edge-case syntax). When `robot merge` or `robot query` fails with a parsing error:
+
+1. **Convert first**: Use `robot convert` to transform the file to RDF/XML before merging:
+
+```
+call_tool(name: "odk_robot", data: {
+  "robot_args": "convert --input ontology/<name>.owl --output queries/ontology-rdfxml.owl --format owl",
+  "project_dir": "projects/<project_dir>"
+})
+```
+
+2. Then merge from the converted file. If the test data file also fails to parse, convert it too.
+3. **Never** copy axioms from one file to another via `get_all_axioms` + `add_axioms` as a merge workaround. This creates a flat dump of triples without proper ontology structure and defeats the purpose of schema-aware verification.
+
+### Running queries one at a time
+
+This wastes tool calls. Always batch using multiple `--query` flags as shown in Phase 2.
+
+### Forgetting to re-merge after changes
+
+If you fix a query, test data, or the ontology, the `merged.owl` file is stale. Always re-run the merge before re-running queries.
+
 ### Clean Up
 
-After all CQs pass, delete `queries/merged.owl` — it is a build artifact. Keep the test data and query files as project deliverables.
+After all CQs pass, delete `queries/merged.owl` and any intermediate conversion files (e.g. `queries/ontology-rdfxml.owl`) — they are build artifacts. Keep the test data and query files as project deliverables.

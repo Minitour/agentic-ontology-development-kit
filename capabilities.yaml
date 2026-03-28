@@ -16,7 +16,7 @@ skills:
       repo: infragate/capa@capabilities-manager
       description: Guide for managing capabilities with capa CLI
       requires:
-        - capa_install
+        - install
         - find_skills
   - id: odp-pattern-selector
     type: local
@@ -32,7 +32,7 @@ skills:
         with test data. Use during Step 7, or whenever the user asks to test,
         validate, or verify an ontology against its CQs.
       requires:
-        - odk_robot
+        - robot
         - '@owl.add_axiom'
         - '@owl.add_axioms'
         - '@owl.add_prefix'
@@ -62,56 +62,7 @@ skills:
         Run custom Make targets or other ODK tools (Konclude, jena,
         relation-graph, etc.) not covered by dedicated skills
       requires:
-        - odk_run
-  - id: odk-owltools
-    type: local
-    def:
-      path: ./skills/odk-owltools
-      description: Run owltools for reasoning, merge, extract, OWL API operations
-      requires:
-        - odk_owltools
-  - id: odk-dosdp-tools
-    type: local
-    def:
-      path: ./skills/odk-dosdp-tools
-      description: Run dosdp-tools for pattern-based ontology generation
-      requires:
-        - odk_dosdp_tools
-  - id: odk-fastobo-validator
-    type: local
-    def:
-      path: ./skills/odk-fastobo-validator
-      description: Validate OBO-format files
-      requires:
-        - odk_fastobo_validator
-  - id: odk-riot
-    type: local
-    def:
-      path: ./skills/odk-riot
-      description: Convert or validate RDF with riot
-      requires:
-        - odk_riot
-  - id: odk-runoak
-    type: local
-    def:
-      path: ./skills/odk-runoak
-      description: Query ontologies with OAKLIB (runoak)
-      requires:
-        - odk_runoak
-  - id: odk-sssom
-    type: local
-    def:
-      path: ./skills/odk-sssom
-      description: Work with SSSOM mapping files (validate, convert, merge)
-      requires:
-        - odk_sssom
-  - id: odk-seed
-    type: local
-    def:
-      path: ./skills/odk-seed
-      description: Seed a new ODK ontology repo from a config YAML
-      requires:
-        - odk_seed
+        - run
   - id: odk-robot
     type: local
     def:
@@ -120,16 +71,7 @@ skills:
         Run ROBOT in ODK Docker (verify, merge, reason, convert, template,
         query)
       requires:
-        - odk_robot
-  - id: odk-make
-    type: local
-    def:
-      path: ./skills/odk-make
-      description: >-
-        Run ODK Make targets (test, prepare_release, refresh-imports,
-        update_repo)
-      requires:
-        - odk_make
+        - robot
   - id: semlocal
     type: remote
     def:
@@ -168,10 +110,6 @@ skills:
       description: >-
         From project directory, create branch, commit, push, and open PR.
         Use when user wants to create a PR for their changes or for an issue.
-  - id: skill-creator
-    type: github
-    def:
-      repo: anthropics/skills@skill-creator
 agents:
   base:
     type: local
@@ -187,15 +125,14 @@ agents:
       id: ontology_builder_tools
       content: >-
         For ontology work: edit OWL only via the ontology-editor tools (never by
-        hand); run ROBOT (reason, verify, merge, etc.) via the odk_robot tool;
-        run ODK Make targets via odk_make. Paths for ODK tools are relative to the mounted project root
+        hand); run ROBOT (reason, verify, merge, etc.) via the odk_robot tool. Paths for ODK tools are relative to the mounted project root
         (e.g. ontology/agentic-ai.owl).
     - type: inline
       id: external_ontology_contribution
       content: >-
         For contributing to an external ontology, use analyze-project, then
         clone-project (into projects/), then review-issue, then implement using
-        odk_robot and odk_make with project_dir (and make_path for Make), then
+        odk_robot with project_dir, then
         create-pull-request. Do not run the ODK Docker script manually for
         clones. Follow the target repo's CONTRIBUTING and PR checklist.
 servers:
@@ -210,30 +147,6 @@ servers:
         - owl-mcp@1.0.8
         - serve
 tools:
-  - id: capa_install
-    type: command
-    def:
-      run:
-        cmd: capa install
-        args: []
-  - id: find_skills
-    type: command
-    def:
-      init:
-        cmd: npx skills@latest
-      run:
-        cmd: npx skills find {query}
-        args:
-          - name: query
-            type: string
-            description: Search query for finding skills
-            required: true
-  - id: add_axiom
-    type: mcp
-    description: Add one axiom to an OWL file (functional syntax)
-    def:
-      server: '@owl'
-      tool: add_axiom
   - id: add_axioms
     type: mcp
     description: Add multiple axioms to an OWL file
@@ -288,7 +201,7 @@ tools:
     def:
       server: '@owl'
       tool: test_pitfalls
-  - id: odk_run
+  - id: run
     type: command
     group: odk
     description: >-
@@ -311,105 +224,7 @@ tools:
               Optional. Project root to mount (e.g. projects/pizza). Empty or
               omit to use current working directory.
             required: false
-  - id: odk_owltools
-    type: command
-    group: odk
-    description: Run owltools (reasoning, merge, extract, OWL API operations)
-    def:
-      run:
-        cmd: node scripts/odk-docker-run.js "owltools {args}"
-        args:
-          - name: args
-            type: string
-            description: >-
-              owltools arguments (e.g. edit.owl --reasoner elk --run-reasoner -o
-              reasoned.owl)
-            required: true
-  - id: odk_dosdp_tools
-    type: command
-    group: odk
-    description: Run dosdp-tools (pattern-based ontology generation from YAML + CSV)
-    def:
-      run:
-        cmd: node scripts/odk-docker-run.js "dosdp-tools {args}"
-        args:
-          - name: args
-            type: string
-            description: >-
-              dosdp-tools arguments (e.g. generate --template t.yaml --ontology
-              edit.owl --outfile out.owl)
-            required: true
-  - id: odk_fastobo_validator
-    type: command
-    group: odk
-    description: Validate OBO-format files (syntax and structure)
-    def:
-      run:
-        cmd: node scripts/odk-docker-run.js "fastobo-validator {args}"
-        args:
-          - name: args
-            type: string
-            description: File path(s) to validate (e.g. edit.obo)
-            required: true
-  - id: odk_riot
-    type: command
-    group: odk
-    description: Convert or validate RDF (RDF/XML, Turtle, N-Triples, JSON-LD)
-    def:
-      run:
-        cmd: node scripts/odk-docker-run.js "riot {args}"
-        args:
-          - name: args
-            type: string
-            description: riot arguments (e.g. --output=ttl edit.owl)
-            required: true
-  - id: odk_runoak
-    type: command
-    group: odk
-    description: Query and navigate ontologies with OAKLIB (search, ancestors, descendants)
-    def:
-      run:
-        cmd: node scripts/odk-docker-run.js "runoak {args}"
-        args:
-          - name: args
-            type: string
-            description: runoak arguments (e.g. -i edit.owl search "term")
-            required: true
-  - id: odk_sssom
-    type: command
-    group: odk
-    description: Validate, convert, or merge SSSOM mapping files
-    def:
-      run:
-        cmd: node scripts/odk-docker-run.js "sssom {args}"
-        args:
-          - name: args
-            type: string
-            description: sssom arguments (e.g. validate mappings.tsv)
-            required: true
-  - id: odk_seed
-    type: command
-    group: odk
-    description: >-
-      Seed a new ODK ontology repo from a config YAML, then copy the generated
-      layout into the project directory (e.g. projects/<project_dir>/).
-    def:
-      run:
-        cmd: node scripts/odk-seed-with-copy.js {config_path} {extra}
-        args:
-          - name: config_path
-            type: string
-            description: >-
-              Path to the ODK config YAML relative to project root (e.g.
-              projects/<project_dir>/<id>-odk.yaml)
-            required: true
-          - name: extra
-            type: string
-            description: >-
-              Optional extra seed arguments (e.g. --commit-artefacts). Leave
-              empty if not needed. Git identity is supplied.
-            required: false
-  - id: odk_robot
+  - id: robot
     type: command
     group: odk
     description: >-
@@ -432,33 +247,3 @@ tools:
               Optional. Project root to mount (e.g. projects/owner-repo for a
               clone). Empty or omit for workspace ontology (cwd).
             required: false
-  - id: odk_make
-    type: command
-    group: odk
-    description: >-
-      Run Makefile target in an ODK repo (test, prepare_release, etc.). Use
-      project_dir for clones under projects/; use make_path when Makefile is
-      not in the ontology directory.
-    def:
-      run:
-        cmd: node scripts/odk-docker-run.js "{project_dir}" "make -C {make_path} {target}"
-        args:
-          - name: target
-            type: string
-            description: >-
-              Make target (e.g. test, prepare_release, refresh-imports,
-              update_repo, odkversion)
-            required: true
-          - name: project_dir
-            type: string
-            description: >-
-              Optional. Project root to mount (e.g. projects/owner-repo).
-              Empty or omit for workspace ontology. Relative paths resolved from
-              repo root.
-            required: false
-          - name: make_path
-            type: string
-            description: >-
-              Path to Makefile directory relative to project root (e.g.
-              ontology). Required; pass the path where the Makefile lives.
-            required: true
