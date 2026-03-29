@@ -55,9 +55,10 @@ Align with the project's INSTRUCTIONS.md: work top-down, get user approval befor
 1. **Always use absolute paths**: Pass the full absolute path in `owl_file_path` to ensure the MCP server can resolve the file regardless of working directory.
 2. **Finding content**: Call `find_axioms` with a regex pattern; set `include_labels: true` for human-readable labels appended as `##` comments. Use `annotation_property` to override the default `rdfs:label` (e.g. for `skos:prefLabel`).
 3. **Adding axioms**: Use OWL functional syntax. Add one axiom per call with `add_axiom`, or batch with `add_axioms`. Ensure required prefixes exist (e.g. `owl`, `rdf`, `rdfs`, `xsd`); add custom ones with `add_prefix`.
-4. **Setting the ontology IRI**: Use `set_ontology_iri` to establish the ontology IRI and version IRI before adding axioms to a new file.
+4. **Setting the ontology IRI**: Use `set_ontology_iri` to establish the ontology IRI and version IRI before adding axioms to a new file. **Always pass full IRIs** (e.g. `"http://example.org/ontology/my-ontology/"`), never CURIEs (e.g. `"ex:"`). CURIEs in the `Ontology(...)` header produce files that ROBOT cannot parse.
 5. **Project workflow**: After the user approves a draft (Step 5), use these tools to implement the change in the OWL file (Step 6), then run `test_pitfalls` as part of automated review (Step 7).
-6. **Imports**: When adding an external ontology (e.g. BFO), add the import axiom via `add_axiom`. If the serialized OWL file does not show an `owl:Ontology` block with `owl:imports`, add the `owl:Ontology` / `owl:imports` block explicitly so reasoners and tools can resolve the dependency.
+6. **Imports**: Add import axioms via `add_axiom` using **full IRIs in angle brackets**: `Import(<http://purl.obolibrary.org/obo/bfo.owl>)`. Never use CURIEs in `Import(...)` (e.g. `Import(obo:bfo.owl)` is invalid and will cause ROBOT parsing failures).
+7. **Annotating the ontology itself**: When the subject of an `AnnotationAssertion` is the ontology (e.g. for `rdfs:label`, `rdfs:comment`, `dcterms:license`), use the **full ontology IRI** as the subject, not a bare CURIE. Example: `AnnotationAssertion(rdfs:label <http://example.org/ontology/my-ontology/> "My Ontology"@en)`.
 
 ## Tool Requirements
 

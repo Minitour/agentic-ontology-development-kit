@@ -110,7 +110,7 @@ Convert the approved draft into formal ontology using the **ontology-editor** to
 **Procedure:**
 
 1. **Activate tools**: Read the **ontology-editor** skill (`skills/ontology-editor/SKILL.md`), then call `setup_tools(skills: ["ontology-editor"])` to activate the tools.
-2. **Set ontology IRI**: Call `set_ontology_iri` to establish the ontology IRI (and version IRI if applicable).
+2. **Set ontology IRI**: Call `set_ontology_iri` with the **full IRI** (e.g. `"http://example.org/ontology/my-ontology/"`) — never a CURIE (e.g. `"ex:"`). Same for the version IRI. CURIEs in the `Ontology(...)` header produce files that ROBOT cannot parse.
 3. **Add prefixes**: Call `add_prefix` for each namespace prefix (the ontology's own prefix, `owl`, `rdf`, `rdfs`, `xsd`, and any imported namespaces).
 4. **Add axioms**: Use `add_axioms` to batch declarations, subclass axioms, property axioms, domain/range, cardinality restrictions, disjointness, equivalent classes, and annotation assertions. Group related axioms into logical batches (e.g. all class declarations, then property declarations, then restrictions).
 5. **Verify**: Call `find_axioms` or `get_all_axioms` with `include_labels: true` to spot-check the result.
@@ -121,7 +121,8 @@ Convert the approved draft into formal ontology using the **ontology-editor** to
 - **When an upper-level ontology is used**: Use only the **existing object and data properties** from that ontology; do not define new ones unless the user explicitly instructs otherwise.
 - Assert subclass axioms, property chains, domain/range, cardinality. Where scope and CQs support it, add defined classes, inverse properties, and value partitions (see **Modeling quality and enrichment**).
 - Add annotation properties (labels, definitions, synonyms, provenance).
-- **Add `owl:imports`** for the upper ontology (if any) using the **canonical IRI** (BFO → `http://purl.obolibrary.org/obo/bfo.owl`, SULO → `https://w3id.org/sulo/`) and for any other reused external ontologies.
+- **Add `owl:imports`** for the upper ontology (if any) using the **canonical IRI** in angle brackets: `Import(<http://purl.obolibrary.org/obo/bfo.owl>)` for BFO, `Import(<https://w3id.org/sulo/>)` for SULO. Never use CURIEs in `Import(...)` axioms (e.g. `Import(obo:bfo.owl)` is invalid) — ROBOT cannot parse them.
+- **Annotation assertions on the ontology itself** (e.g. `rdfs:label`, `rdfs:comment`, `dcterms:license`) must use the **full ontology IRI** as the subject, not a bare CURIE like `ex:`. Example: `AnnotationAssertion(rdfs:label <http://example.org/ontology/my-ontology/> "My Ontology"@en)`.
 - **Datatype selection:** Choose semantically accurate XSD datatypes. Be aware that `xsd:date` and `xsd:gYear` are not in the OWL 2 DL datatype map — consult the user before substituting if strict DL compliance is required.
 - Record provenance: requester, data sources, iteration date.
 

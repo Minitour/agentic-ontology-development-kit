@@ -107,6 +107,32 @@ SELECT ?subtype ?label WHERE {
 
 **Write all query files before executing any.** This prevents the pattern of writing one, running it, getting distracted, and never finishing the rest.
 
+### Phase 1.5 — Pre-flight: Validate OWL File for ROBOT Compatibility
+
+Before running any ROBOT commands, read the first ~15 lines of the ontology OWL file and check for these known issues that prevent ROBOT from parsing the file:
+
+1. **CURIEs in the `Ontology(...)` header** — The `Ontology(...)` declaration must use full IRIs in angle brackets, not CURIEs. ROBOT's OWLAPI parser rejects CURIEs in this position.
+
+   Bad: `Ontology(ex: ex:1.0`
+   Good: `Ontology(<http://example.org/my-ontology/> <http://example.org/my-ontology/1.0>`
+
+2. **CURIEs in `Import(...)` statements** — Import IRIs must be full IRIs in angle brackets.
+
+   Bad: `Import(obo:bfo.owl)`
+   Good: `Import(<http://purl.obolibrary.org/obo/bfo.owl>)`
+
+3. **Bare CURIEs as annotation subjects** — When the ontology itself is the subject of an `AnnotationAssertion`, the subject must be the full IRI, not a bare prefix like `ex:`.
+
+   Bad: `AnnotationAssertion(rdfs:label ex: "My Ontology")`
+   Good: `AnnotationAssertion(rdfs:label <http://example.org/my-ontology/> "My Ontology")`
+
+**If any of these are found**, fix them before proceeding:
+
+- Use `set_ontology_iri` with the **full IRI** (not a CURIE) to fix the `Ontology(...)` header. If `set_ontology_iri` does not rewrite the file correctly, report the issue to the user — do not proceed with a file ROBOT cannot parse.
+- For `Import(...)` and `AnnotationAssertion` issues, use `remove_axiom` to remove the broken axiom and `add_axiom` to re-add it with the full IRI in angle brackets.
+
+**Why this matters:** The ontology-editor tools (owl-mcp) produce OWL functional syntax. If the agent passed CURIEs instead of full IRIs to `set_ontology_iri` or to `Import(...)` axioms during formalization, the resulting file will look valid but ROBOT will reject it with "INVALID ONTOLOGY FILE ERROR." The convert fallback below also fails on these files — you must fix the source syntax first.
+
 ### Phase 2 — Execute Queries
 
 Use `odk_robot` to merge the ontology with the test data, then run each query against the merged result.
@@ -122,7 +148,7 @@ call_tool(name: "odk_robot", data: {
 
 The merge produces a single file with both TBox and ABox. Paths in `robot_args` are relative to the project directory.
 
-**If merge fails** (e.g. parsing error on OWL functional syntax), convert the ontology to RDF/XML first and merge from that:
+**If merge fails** with a parsing error even after pre-flight checks pass, convert the ontology to RDF/XML first:
 
 ```
 call_tool(name: "odk_robot", data: {
@@ -173,21 +199,9 @@ Every CQ must appear in the table. If any CQ fails due to an ontology gap, fix t
 
 ## Common Pitfalls
 
-### ROBOT fails to parse the ontology or test data file
+### ROBOT fails with "INVALID ONTOLOGY FILE ERROR"
 
-The ontology-editor tools produce OWL functional syntax. ROBOT usually handles this, but may fail on certain files (encoding issues, large axiom sets, or edge-case syntax). When `robot merge` or `robot query` fails with a parsing error:
-
-1. **Convert first**: Use `robot convert` to transform the file to RDF/XML before merging:
-
-```
-call_tool(name: "odk_robot", data: {
-  "robot_args": "convert --input ontology/<name>.owl --output queries/ontology-rdfxml.owl --format owl",
-  "project_dir": "projects/<project_dir>"
-})
-```
-
-2. Then merge from the converted file. If the test data file also fails to parse, convert it too.
-3. **Never** copy axioms from one file to another via `get_all_axioms` + `add_axioms` as a merge workaround. This creates a flat dump of triples without proper ontology structure and defeats the purpose of schema-aware verification.
+This almost always means CURIEs were used where full IRIs are required (see **Phase 1.5**). Run the pre-flight checks first. If those pass and ROBOT still fails, convert the file to RDF/XML as described in Phase 2. Never copy axioms between files via `get_all_axioms` + `add_axioms` as a workaround — this defeats schema-aware verification.
 
 ### Running queries one at a time
 
