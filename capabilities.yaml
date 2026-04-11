@@ -9,6 +9,8 @@ options:
       description: Required to run capa and ODK scripts
     - cli: semlocal
       description: Required for local semantic memory (npm install -g semlocal)
+    - cli: curl
+      description: Required to search the EBI OLS4 API
 skills:
   - id: capabilities-manager
     type: github
@@ -110,6 +112,16 @@ skills:
       description: >-
         From project directory, create branch, commit, push, and open PR.
         Use when user wants to create a PR for their changes or for an issue.
+  - id: ontology-reuse
+    type: local
+    def:
+      path: ./skills/ontology-reuse
+      description: >-
+        Search ontology registries (OLS, OBO Foundry, BioPortal) for existing
+        terms to reuse. Use during Steps 2–3, or when the user asks to find,
+        look up, or reuse existing ontology terms.
+      requires:
+        - ols_search
 agents:
   base:
     type: local
@@ -247,3 +259,23 @@ tools:
               Optional. Project root to mount (e.g. projects/owner-repo for a
               clone). Empty or omit for workspace ontology (cwd).
             required: false
+  - id: ols_search
+    type: command
+    description: >-
+      Search the EBI OLS4 API for ontology entities. Returns matching entities
+      with facets for ontologyId and type, filtered to defining ontologies.
+    def:
+      run:
+        cmd: curl -s -G "https://www.ebi.ac.uk/ols4/api/v2/entities" --data-urlencode "search={query}" --data-urlencode "facetFields=ontologyId type" -d "size=10" -d "page={page}" -d "isDefiningOntology=true"
+        args:
+          - name: query
+            type: string
+            description: >-
+              Search query (e.g. "cancer related fatigue"). Spaces are
+              URL-encoded automatically.
+            required: true
+          - name: page
+            type: string
+            description: Page number for paginated results (defaults to 0).
+            required: false
+            default: "0"
