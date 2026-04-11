@@ -113,7 +113,7 @@ skills:
 agents:
   base:
     type: local
-    path: ./INIT.md
+    path: ./WORKFLOW.md
   additional:
     - type: inline
       id: capa_tool_usage

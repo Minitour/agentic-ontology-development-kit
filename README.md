@@ -10,7 +10,7 @@ flowchart TB
 
     User <-->|natural language| Agent["AI Agent<br/>(Cursor / Claude Code)"]
 
-    Agent -.-|configured by| Config["INIT.md &plus; capabilities.yaml<br/><i>workflow rules &amp; skill registry (capa)</i>"]
+    Agent -.-|configured by| Config["WORKFLOW.md &plus; capabilities.yaml<br/><i>workflow rules &amp; skill registry (capa)</i>"]
 
     Agent --> Editing["ontology-editor<br/><small>skill</small>"]
     Agent --> ODK["ODK tools<br/><small>robot · make · sparql · seed<br/>owltools · riot · runoak · …</small>"]
@@ -73,7 +73,7 @@ Upper ontologies (BFO and SULO) live in `upper-level/` for reference. You do not
 ```
 ontology-builder/
 ├── capabilities.yaml   # Agent skills and tools (managed by capa)
-├── INIT.md             # Agent instructions (for the agent, not you)
+├── WORKFLOW.md         # Agent instructions (for the agent, not you)
 ├── projects/           # One directory per ontology project
 │   └── <project_dir>/  # e.g. my-ontology, envo
 │       ├── ontology/   # e.g. projects/<project_dir>/ontology/my-ontology.owl
