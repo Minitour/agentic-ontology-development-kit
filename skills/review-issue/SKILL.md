@@ -48,4 +48,4 @@ Use hypothetical examples only; do not name specific ontologies from a fixed lis
 ## Notes
 
 - If CONTRIBUTING or issue templates were captured in **analyze-project**, reuse that to interpret what "required" means for NTRs or other types.
-- This skill does not implement the issue; it only reviews and summarizes. Implementation is done in the project directory (e.g. `projects/<slug>/`) using ontology-editor and ODK skills, then **create-pull-request** for branch and PR.
+- This skill does not implement the issue; it only reviews and summarizes. Implementation is done in the project directory (e.g. `projects/<slug>/`) using the ontology-editor tools (plus `check_consistency`/`sparql_query` for local checks), then **create-pull-request** for branch and PR.

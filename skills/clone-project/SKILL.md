@@ -5,7 +5,7 @@ description: Clone an ontology repository into the workspace's projects director
 
 # Clone Project Skill
 
-Use this skill when the user wants to **clone an ontology repository** so they can work on it in this workspace. Clones go into a single, predictable location: **`projects/<slug>/`** at the root of the Ontology Builder repo. All later steps (implement, ODK/ROBOT, branch, commit, PR) are performed **from that project directory**—the agent (or user) changes directory into the clone and runs everything there.
+Use this skill when the user wants to **clone an ontology repository** so they can work on it in this workspace. Clones go into a single, predictable location: **`projects/<slug>/`** at the root of the Ontology Builder repo. All later steps (implement, branch, commit, PR) are performed **from that project directory**—the agent (or user) changes directory into the clone and runs everything there.
 
 ## When to Use
 
@@ -19,8 +19,8 @@ Use this skill so clones land in one place and paths stay consistent; do not clo
 1. **Resolve repo URL**: From the user's message or a prior analyze step, get the clone URL (e.g. `https://github.com/owner/repo` or `git@github.com:owner/repo.git`) and derive a **stable slug** (e.g. `owner-repo`) so the same repo always lands in the same path.
 2. **Ensure `projects/` exists**: At the root of the Ontology Builder repo, create the directory `projects/` if it does not exist. The `projects/` directory is gitignored.
 3. **Clone**: Run `git clone <url> projects/<slug>`. Use the slug consistently (e.g. from GitHub: `owner-repo`). If `projects/<slug>` already exists, do not overwrite—report that the project is already cloned and where it is; offer to pull latest or to use the existing clone.
-4. **Verify build (optional but recommended)**: Use the **built-in ODK tools** with **project_dir** set to the clone path. For example: **odk_make** with `target`: `test`, `project_dir`: `projects/<slug>`, and `make_path`: the path to the Makefile in the clone (e.g. `ontology`). Do not run `node scripts/odk-docker-run.js` manually—use **odk_robot** and **odk_make** with **project_dir** so the correct project is mounted. Report success or any failure.
-5. **Tell the user**: Confirm the clone path (`projects/<slug>/`). For ODK/ROBOT and Make, use **odk_robot** and **odk_make** with **project_dir** set to `projects/<slug>` (and **make_path** when using odk_make). Git operations (branch, commit, PR) are still done from the clone directory (cd into it).
+4. **Note the QC setup**: Inspect the clone's CI configuration (e.g. `.github/workflows/*.yml`) so you know what checks the target repository runs on pull requests. QC for external contributions is run by the **target repository's own CI**, not locally—do not attempt to build or run the repo's ODK/ROBOT pipeline in this workspace.
+5. **Tell the user**: Confirm the clone path (`projects/<slug>/`). Ontology edits are made with the ontology-editor tools; consistency/CQ checks use the owl-mcp `check_consistency` and `sparql_query` tools. Git operations (branch, commit, PR) are done from the clone directory (cd into it).
 
 ## Slug Convention
 
@@ -31,14 +31,13 @@ Use this skill so clones land in one place and paths stay consistent; do not clo
 
 After cloning:
 
-- **ODK/ROBOT and Make**: Use the **built-in odk_robot and odk_make tools** with **project_dir** set to the clone root (e.g. `projects/owner-repo`). Paths in `robot_args` are relative to the clone root (e.g. `ontology/edit.owl` or the project's edit file). For **odk_make**, also set **make_path** to where the Makefile lives (e.g. `ontology`). Do not run `node scripts/odk-docker-run.js` from the shell—using the tools with **project_dir** ensures the correct project is mounted and keeps the workflow consistent.
-- **Ontology-editor**: Use absolute paths to OWL files in the clone (e.g. `C:\...\ontology-builder\projects\owner-repo\ontology\edit.owl`) or load the file and register it by name.
+- **Ontology-editor**: Use absolute paths to OWL files in the clone (e.g. `C:\...\ontology-builder\projects\owner-repo\ontology\edit.owl`) for all axiom, prefix, and metadata changes.
+- **Consistency and CQ checks**: Use owl-mcp `check_consistency` and `sparql_query` (absolute paths) for local validation. Full repository QC is left to the target repo's CI on the PR.
 - **Git operations** (branch, commit, push, PR): Perform these from the clone root (cd into `projects/<slug>/`). The **create-pull-request** skill assumes the agent is in that directory for Git commands.
 
 ## Prerequisites
 
 - Git installed; network access to the clone URL.
-- For running ODK/QC after clone: Docker (and optionally Make) as required by the target project; the Ontology Builder script uses the ODK Docker image and mounts the clone when run with that project_dir.
 
 ## Output
 

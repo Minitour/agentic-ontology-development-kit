@@ -30,8 +30,8 @@ Use **web fetch or search** (and optionally terminal to list files if the repo i
 
 Return a concise report with:
 
-- **Layout**: Top-level directories and where the ontology edit file / Makefile lives (e.g. `ontology/`). Note the **Make path** (path to the Makefile directory relative to repo root, e.g. `ontology`) so **odk_make** can be called with the correct **make_path** when working on a clone.
-- **Build and CI**: How to build and run QC locally (e.g. ODK Docker, `make -C ontology test`); what CI runs on PRs.
+- **Layout**: Top-level directories and where the ontology edit file lives (e.g. `ontology/`). Note the edit file path so it can be opened with the ontology-editor tools when working on a clone.
+- **Build and CI**: What QC the target repository runs on pull requests (e.g. `.github/workflows/*.yml`, ODK/ROBOT checks). QC is executed by the target repo's CI on the PR — it is not run locally in this workspace.
 - **Contributing**: Issue-first? Where to find CONTRIBUTING; main contribution types (e.g. new term request, synonym, obsoletion).
 - **Issue/PR expectations**: Any issue templates (NTR, bug, etc.); PR checklist or description expectations (e.g. "Closes #N", change table); review expectations if visible.
 

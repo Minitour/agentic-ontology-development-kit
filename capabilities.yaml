@@ -3,10 +3,8 @@ providers:
 options:
   toolExposure: on-demand
   requiresCommands:
-    - cli: docker
-      description: Required to run ODK containerised tools
     - cli: node
-      description: Required to run capa and ODK scripts
+      description: Required to run owl-mcp
     - cli: semlocal
       description: Required for local semantic memory (npm install -g semlocal)
     - cli: curl
@@ -34,12 +32,13 @@ skills:
         with test data. Use during Step 7, or whenever the user asks to test,
         validate, or verify an ontology against its CQs.
       requires:
-        - robot
         - '@owl.add_axiom'
         - '@owl.add_axioms'
         - '@owl.add_prefix'
         - '@owl.set_ontology_iri'
         - '@owl.find_axioms'
+        - '@owl.sparql_query'
+        - '@owl.check_consistency'
   - id: ontology-editor
     type: local
     def:
@@ -56,24 +55,6 @@ skills:
         - '@owl.get_labels_for_iri'
         - '@owl.set_ontology_iri'
         - '@owl.test_pitfalls'
-  - id: odk-run
-    type: local
-    def:
-      path: ./skills/odk-run
-      description: >-
-        Run custom Make targets or other ODK tools (Konclude, jena,
-        relation-graph, etc.) not covered by dedicated skills
-      requires:
-        - run
-  - id: odk-robot
-    type: local
-    def:
-      path: ./skills/odk-robot
-      description: >-
-        Run ROBOT in ODK Docker (verify, merge, reason, convert, template,
-        query)
-      requires:
-        - robot
   - id: semlocal
     type: remote
     def:
@@ -125,28 +106,42 @@ skills:
 agents:
   base:
     type: local
-    path: ./WORKFLOW.md
+    path: ./.workflow/workflow.md
   additional:
     - type: inline
       id: capa_tool_usage
       content: >-
-        After learning a new skill, call `setup_tools(skills: ["<skill-id>"])` to
-        activate it, then use `call_tool(name: "<tool>", data: {...})` to invoke
-        the relevant tool.
+        Tools are provided by the capa MCP server. Preferred path: after learning
+        a skill, call `setup_tools(skills: ["<skill-id>"])` to activate it, then
+        `call_tool(name: "<tool>", data: {...})`. If the MCP tools are not
+        available (e.g. the editor hasn't reloaded the server after `capa
+        install`), use the equivalent CLI via the terminal instead — it drives
+        the same tools without the MCP client. Run `capa sh` to list everything,
+        `capa sh owl` to list the owl-mcp tools, and `capa sh owl <tool> --flag
+        value` to invoke one. Tool and flag names are kebab-case (e.g.
+        `check_consistency` → `capa sh owl check-consistency`,
+        `owl_file_paths` → `--owl-file-paths`); repeat a flag to pass array
+        values; use absolute, quoted file paths; results are printed as JSON.
+        Example: `capa sh owl sparql-query --owl-file-paths "C:/abs/ont.owl"
+        --owl-file-paths "C:/abs/data.owl" --with-reasoning false --query
+        "SELECT ..."`. The capa server must be running (`capa start`); `capa
+        restart` also clears stale in-memory ontology state between builds.
     - type: inline
       id: ontology_builder_tools
       content: >-
-        For ontology work: edit OWL only via the ontology-editor tools (never by
-        hand); run ROBOT (reason, verify, merge, etc.) via the odk_robot tool. Paths for ODK tools are relative to the mounted project root
-        (e.g. ontology/agentic-ai.owl).
+        For ontology work, use the owl-mcp tools only (never edit OWL by hand):
+        editing/annotation via the ontology-editor tools, logical consistency
+        via check_consistency, and CQ verification via sparql_query (pass
+        multiple owl_file_paths to merge schema + test data in-memory). Use
+        absolute file paths for all owl-mcp tool calls.
     - type: inline
       id: external_ontology_contribution
       content: >-
         For contributing to an external ontology, use analyze-project, then
-        clone-project (into projects/), then review-issue, then implement using
-        odk_robot with project_dir, then
-        create-pull-request. Do not run the ODK Docker script manually for
-        clones. Follow the target repo's CONTRIBUTING and PR checklist.
+        clone-project (into projects/), then review-issue, then implement the
+        change with the ontology-editor tools, then create-pull-request. QC is
+        run by the target repository's own CI on the pull request; do not run QC
+        locally. Follow the target repo's CONTRIBUTING and PR checklist.
 servers:
   # Minitour/owl-mcp (Rust): https://github.com/Minitour/owl-mcp
   - id: owl
@@ -156,7 +151,7 @@ servers:
       cmd: npx
       args:
         - -y
-        - owl-mcp@1.0.8
+        - owl-mcp@1.0.14
         - serve
 tools:
   - id: add_axioms
@@ -213,52 +208,23 @@ tools:
     def:
       server: '@owl'
       tool: test_pitfalls
-  - id: run
-    type: command
-    group: odk
+  - id: sparql_query
+    type: mcp
     description: >-
-      Run an arbitrary ODK command (custom make target or other tool not covered
-      by dedicated tools). Optional project_dir mounts that dir at /work (e.g.
-      projects/pizza). Paths in command are relative to repo root or project_dir.
+      Run a SPARQL query over one or more OWL files (multiple paths are merged
+      in-memory). Set with_reasoning to materialize OWL 2 EL entailments before
+      querying.
     def:
-      run:
-        cmd: node scripts/odk-docker-run.js "{project_dir}" "{command}"
-        args:
-          - name: command
-            type: string
-            description: >-
-              Full command (e.g. make -C ontology custom-target, Konclude -i
-              edit.owl -o out.owl). No robot—use odk_robot.
-            required: true
-          - name: project_dir
-            type: string
-            description: >-
-              Optional. Project root to mount (e.g. projects/pizza). Empty or
-              omit to use current working directory.
-            required: false
-  - id: robot
-    type: command
-    group: odk
+      server: '@owl'
+      tool: sparql_query
+  - id: check_consistency
+    type: mcp
     description: >-
-      Run ROBOT inside ODK Docker (validate, merge, reason, convert, template,
-      query). Paths relative to project root (or cwd when project_dir empty).
-      Use project_dir for clones under projects/ (e.g. projects/owner-repo).
+      Run an OWL 2 EL reasoner (whelk) over one or more OWL files and report
+      logical consistency and unsatisfiable classes. Replaces robot reason.
     def:
-      run:
-        cmd: node scripts/odk-docker-run.js "{project_dir}" "robot {robot_args}"
-        args:
-          - name: robot_args
-            type: string
-            description: >-
-              ROBOT arguments; paths relative to mounted root (e.g. reason
-              --input ontology/edit.owl or the edit file path in the project)
-            required: true
-          - name: project_dir
-            type: string
-            description: >-
-              Optional. Project root to mount (e.g. projects/owner-repo for a
-              clone). Empty or omit for workspace ontology (cwd).
-            required: false
+      server: '@owl'
+      tool: check_consistency
   - id: ols_search
     type: command
     description: >-

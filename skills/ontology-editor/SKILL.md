@@ -69,3 +69,15 @@ This skill requires the following tools (proxied from the `owl-mcp` MCP server):
 - set_ontology_iri, test_pitfalls
 
 After learning this skill, call `setup_tools(skills: ["ontology-editor"])` to activate these tools, then use `call_tool(name: "<tool_name>", data: {...})` to invoke them.
+
+**CLI fallback (no MCP client needed):** If the MCP tools are unavailable (e.g. the editor hasn't reloaded the capa server after `capa install`), invoke the same tools from the terminal with `capa sh`. Tool and parameter names are kebab-case, arrays repeat the flag, paths are absolute and quoted, and results print as JSON. Examples:
+
+```bash
+capa sh owl                       # list owl-mcp tools
+capa sh owl set-ontology-iri --owl-file-path "C:/abs/ont.owl" --iri "http://example.org/ont/" --version-iri "http://example.org/ont/1.0"
+capa sh owl add-prefix --owl-file-path "C:/abs/ont.owl" --prefix "ex" --uri "http://example.org/"
+capa sh owl find-axioms --owl-file-path "C:/abs/ont.owl" --pattern "Dog" --include-labels true
+capa sh owl test-pitfalls --owl-file-path "C:/abs/ont.owl"
+```
+
+The capa server must be running (`capa start`); `capa restart` clears stale in-memory ontology state.

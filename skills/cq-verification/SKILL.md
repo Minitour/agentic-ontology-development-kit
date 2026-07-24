@@ -11,7 +11,7 @@ Use this skill during **Step 7 (Automated Review)** to verify that the ontology 
 
 A common mistake is running SPARQL queries against hand-crafted test triples without loading the ontology schema. This only tests whether the test data was constructed correctly — not whether the ontology itself supports the queries. For example, a query like `?x :relatedTo ?y` will succeed against raw triples that contain that pattern, even if the ontology doesn't define `:relatedTo` at all.
 
-To truly verify the ontology, queries must run against a file that contains **both** the ontology schema (classes, properties, axioms) and test individuals. This is what `robot merge` provides — it loads both files by local path into a single in-memory model, making class hierarchies, domains/ranges, and equivalences available to the query engine.
+To truly verify the ontology, queries must run against a model that contains **both** the ontology schema (classes, properties, axioms) and test individuals. The owl-mcp `sparql_query` tool provides this directly: pass **both** the ontology file and the test-data file as `owl_file_paths` and it loads them together into a single in-memory store, making class hierarchies, domains/ranges, and equivalences available to the query engine — no separate merge step is needed.
 
 ## Procedure
 
@@ -44,7 +44,7 @@ DataPropertyAssertion(:hasName :item1 "Example Item")
 ObjectPropertyAssertion(:belongsTo :item1 :category1)
 ```
 
-**Do not add `Import(...)` axioms to this file.** Import statements require either a resolvable URL or an XML catalog mapping the IRI to a local path. Since ontology IRIs like `http://example.org/...` are not real URLs, the import will silently fail — ROBOT will load the test data without the ontology schema, and queries will pass trivially by pattern matching. Use `robot merge` in Phase 2 instead, which loads both files by local path.
+**Do not add `Import(...)` axioms to this file.** Import statements require either a resolvable URL or an XML catalog mapping the IRI to a local path. Since ontology IRIs like `http://example.org/...` are not real URLs, the import will silently fail — the test data would load without the ontology schema, and queries would pass trivially by pattern matching. Instead, pass both files to `sparql_query` in Phase 2, which loads them together by local path.
 
 Keep the test data **minimal** — only the individuals and assertions needed by the CQs. One or two individuals per class is usually enough.
 
@@ -93,7 +93,7 @@ SELECT ?type WHERE {
 }
 ```
 
-- **Schema/hierarchy** ("Which subtypes of X exist?"): uses `rdfs:subClassOf` from the ontology — this is why the merge step matters
+- **Schema/hierarchy** ("Which subtypes of X exist?"): uses `rdfs:subClassOf` from the ontology — this is why loading the ontology alongside the test data matters (and why `with_reasoning: true` helps when inferred subclasses are needed)
 
 ```sparql
 # CQ04: Which subtypes of Role exist?
@@ -107,11 +107,11 @@ SELECT ?subtype ?label WHERE {
 
 **Write all query files before executing any.** This prevents the pattern of writing one, running it, getting distracted, and never finishing the rest.
 
-### Phase 1.5 — Pre-flight: Validate OWL File for ROBOT Compatibility
+### Phase 1.5 — Pre-flight: Validate OWL File
 
-Before running any ROBOT commands, read the first ~15 lines of the ontology OWL file and check for these known issues that prevent ROBOT from parsing the file:
+Read the first ~15 lines of the ontology OWL file and check for these issues, which prevent the file from parsing correctly:
 
-1. **CURIEs in the `Ontology(...)` header** — The `Ontology(...)` declaration must use full IRIs in angle brackets, not CURIEs. ROBOT's OWLAPI parser rejects CURIEs in this position.
+1. **CURIEs in the `Ontology(...)` header** — The `Ontology(...)` declaration must use full IRIs in angle brackets, not CURIEs.
 
    Bad: `Ontology(ex: ex:1.0`
    Good: `Ontology(<http://example.org/my-ontology/> <http://example.org/my-ontology/1.0>`
@@ -128,63 +128,51 @@ Before running any ROBOT commands, read the first ~15 lines of the ontology OWL 
 
 **If any of these are found**, fix them before proceeding:
 
-- Use `set_ontology_iri` with the **full IRI** (not a CURIE) to fix the `Ontology(...)` header. If `set_ontology_iri` does not rewrite the file correctly, report the issue to the user — do not proceed with a file ROBOT cannot parse.
+- Use `set_ontology_iri` with the **full IRI** (not a CURIE) to fix the `Ontology(...)` header. If `set_ontology_iri` does not rewrite the file correctly, report the issue to the user — do not proceed with a malformed file.
 - For `Import(...)` and `AnnotationAssertion` issues, use `remove_axiom` to remove the broken axiom and `add_axiom` to re-add it with the full IRI in angle brackets.
 
-**Why this matters:** The ontology-editor tools (owl-mcp) produce OWL functional syntax. If the agent passed CURIEs instead of full IRIs to `set_ontology_iri` or to `Import(...)` axioms during formalization, the resulting file will look valid but ROBOT will reject it with "INVALID ONTOLOGY FILE ERROR." The convert fallback below also fails on these files — you must fix the source syntax first.
+**Why this matters:** The ontology-editor tools (owl-mcp) produce OWL functional syntax. If the agent passed CURIEs instead of full IRIs to `set_ontology_iri` or to `Import(...)` axioms during formalization, the resulting file will look valid but fail to parse. Fix the source syntax first.
 
 ### Phase 2 — Execute Queries
 
-Use `odk_robot` to merge the ontology with the test data, then run each query against the merged result.
+Use owl-mcp's `sparql_query` tool. Pass **both** the ontology file and the test-data file in `owl_file_paths` — owl-mcp loads them together into one in-memory store, so no separate merge step or merged artifact is needed. Use **absolute paths**.
 
-**Step 1 — Merge ontology + test data:**
+Run one query per call, passing the contents of each `.rq` file as the `query` string:
 
 ```
-call_tool(name: "odk_robot", data: {
-  "robot_args": "merge --input ontology/<name>.owl --input queries/test-data.owl --output queries/merged.owl",
-  "project_dir": "projects/<project_dir>"
+call_tool(name: "sparql_query", data: {
+  "owl_file_paths": [
+    "C:/.../projects/<project_dir>/ontology/<name>.owl",
+    "C:/.../projects/<project_dir>/queries/test-data.owl"
+  ],
+  "query": "PREFIX : <http://example.org/my-ontology#>\nSELECT ?item ?name WHERE { ?item :belongsTo :category1 . ?item :hasName ?name . }"
 })
 ```
 
-The merge produces a single file with both TBox and ABox. Paths in `robot_args` are relative to the project directory.
+`SELECT`/`ASK` return SPARQL 1.1 JSON results directly in the tool response — there is no CSV output file to read.
 
-**If merge fails** with a parsing error even after pre-flight checks pass, convert the ontology to RDF/XML first:
+**CLI fallback (no MCP client needed):** If the MCP tools are unavailable, run the same query from the terminal — repeat `--owl-file-paths` once per file, and pass the query string with `--query`:
 
-```
-call_tool(name: "odk_robot", data: {
-  "robot_args": "convert --input ontology/<name>.owl --output queries/ontology-rdfxml.owl --format owl",
-  "project_dir": "projects/<project_dir>"
-})
-```
-
-Then merge using the converted file. Do **not** work around merge failures by manually copying axioms between files — this defeats schema-aware verification.
-
-**Step 2 — Run queries in batches:**
-
-ROBOT supports multiple `--query` flags in one call. Batch queries to reduce tool calls:
-
-```
-call_tool(name: "odk_robot", data: {
-  "robot_args": "query --input queries/merged.owl --query queries/CQ01.rq queries/results/CQ01.csv --query queries/CQ02.rq queries/results/CQ02.csv --query queries/CQ03.rq queries/results/CQ03.csv",
-  "project_dir": "projects/<project_dir>"
-})
+```bash
+capa sh owl sparql-query \
+  --owl-file-paths "C:/abs/projects/<project_dir>/ontology/<name>.owl" \
+  --owl-file-paths "C:/abs/projects/<project_dir>/queries/test-data.owl" \
+  --with-reasoning false \
+  --query "PREFIX : <http://example.org/my-ontology#> SELECT ?item WHERE { ?item :belongsTo :category1 }"
 ```
 
-Batch 5–10 queries per call. Create the `queries/results/` directory before running the first batch if it doesn't exist.
-
-Read each output CSV to check the results.
+**For CQs that depend on inferred subsumption or defined-class classification** (e.g. "which subtypes of X exist?", or a defined `EquivalentClasses` category), set `"with_reasoning": true` so owl-mcp materializes OWL 2 EL entailments before querying. Leave it off (default) for plain assertion-matching queries.
 
 **What results mean:**
 
-- **Rows with expected individuals** → the ontology supports this CQ. Pass.
-- **Zero rows** → either the test data is missing the necessary assertions, or the ontology is missing a class/property. Investigate which.
+- **Bindings with expected individuals** → the ontology supports this CQ. Pass.
+- **Empty result set** → either the test data is missing the necessary assertions, or the ontology is missing a class/property. Investigate which.
 - **Query error** (syntax error, unknown prefix) → fix the `.rq` file and re-run.
 
 **When something fails:**
 
 - Fix the root cause (query, test data, or ontology)
-- After any change to the ontology or test data, **always re-run the merge** before re-running queries — the merged file is stale otherwise
-- If the ontology itself needed changes, return to Step 6 (formalization) to apply them via ontology-editor tools
+- If the ontology itself needed changes, return to Step 6 (formalization) to apply them via ontology-editor tools, then re-run the affected queries — `sparql_query` always reads the current files, so there is no stale merged artifact to rebuild
 
 ### Phase 3 — Report
 
@@ -199,18 +187,18 @@ Every CQ must appear in the table. If any CQ fails due to an ontology gap, fix t
 
 ## Common Pitfalls
 
-### ROBOT fails with "INVALID ONTOLOGY FILE ERROR"
+### `sparql_query` fails to parse the ontology
 
-This almost always means CURIEs were used where full IRIs are required (see **Phase 1.5**). Run the pre-flight checks first. If those pass and ROBOT still fails, convert the file to RDF/XML as described in Phase 2. Never copy axioms between files via `get_all_axioms` + `add_axioms` as a workaround — this defeats schema-aware verification.
+This almost always means CURIEs were used where full IRIs are required (see **Phase 1.5**). Run the pre-flight checks and fix the source syntax with the ontology-editor tools. Never copy axioms between files via `get_all_axioms` + `add_axioms` as a workaround — this defeats schema-aware verification.
 
-### Running queries one at a time
+### Querying test data alone
 
-This wastes tool calls. Always batch using multiple `--query` flags as shown in Phase 2.
+Always pass **both** the ontology and the test-data file in `owl_file_paths`. Querying the test data by itself only checks that the triples were constructed correctly, not that the ontology supports them.
 
-### Forgetting to re-merge after changes
+### Missing entailments
 
-If you fix a query, test data, or the ontology, the `merged.owl` file is stale. Always re-run the merge before re-running queries.
+If a CQ relies on inferred subclasses or a defined (`EquivalentClasses`) category and the query returns nothing, re-run it with `"with_reasoning": true` — the default runs over asserted triples only.
 
 ### Clean Up
 
-After all CQs pass, delete `queries/merged.owl` and any intermediate conversion files (e.g. `queries/ontology-rdfxml.owl`) — they are build artifacts. Keep the test data and query files as project deliverables.
+The test data and `.rq` query files are project deliverables — keep them. `sparql_query` produces no intermediate merged file, so there are no build artifacts to clean up.
